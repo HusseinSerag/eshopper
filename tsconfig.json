@@ -29,6 +29,21 @@
     },
     {
       "path": "./libraries/database"
+    },
+    {
+      "path": "./libraries/middleware"
+    },
+    {
+      "path": "./libraries/utils"
+    },
+    {
+      "path": "./libraries/utils"
+    },
+    {
+      "path": "./libraries/redis"
+    },
+    {
+      "path": "./libraries/auth"
     }
   ]
 }

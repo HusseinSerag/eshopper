@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../logger"
+    },
+    {
+      "path": "../error-handler"
+    },
+    {
+      "path": "./tsconfig.lib.json"
+    }
+  ]
+}

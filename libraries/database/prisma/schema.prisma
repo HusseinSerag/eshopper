@@ -10,9 +10,45 @@ datasource db {
 }
 
 
+model Avatar {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  url String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  file_id String?
+  userId String? @db.ObjectId @unique
+  users Users? @relation(fields: [userId], references: [id])
+}
 model Users {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   email   String   @unique
-  name    String?
- 
+  isVerified Boolean @default(false)
+  password String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  avatar Avatar?
+   sessions  Session[]
+
+
+}
+
+model Session {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId
+  userId        String@db.ObjectId
+  refreshToken  String   // Store as a hash!
+  userAgent     String
+  ipAddress     String
+  deviceInfo    Json?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  
+  
+  // Relations
+  user          Users     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([refreshToken])
+  
 }

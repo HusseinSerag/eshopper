@@ -85,18 +85,21 @@ export class AppError extends Error {
   public readonly statusCode: number;
   public readonly details?: Record<string, any>;
   public readonly isOperational: boolean;
+  public readonly shouldExit: boolean;
   constructor(
     message: string,
     resCode: number,
     statusCode: number,
     isOperational = true,
-    details: Record<string, any> = {}
+    details: Record<string, any> = {},
+    shouldExit = false
   ) {
     super(message);
     this.resCode = resCode;
     this.statusCode = statusCode;
     this.isOperational = isOperational;
     this.details = details;
+    this.shouldExit = shouldExit;
     Error.captureStackTrace(this);
   }
 }

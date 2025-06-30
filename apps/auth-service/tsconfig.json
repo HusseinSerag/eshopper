@@ -4,6 +4,15 @@
   "include": [],
   "references": [
     {
+      "path": "../../libraries/utils"
+    },
+    {
+      "path": "../../libraries/middleware"
+    },
+    {
+      "path": "../../libraries/redis"
+    },
+    {
       "path": "../../libraries/database"
     },
     {
@@ -11,6 +20,9 @@
     },
     {
       "path": "../../libraries/global-configuration"
+    },
+    {
+      "path": "../../libraries/auth"
     },
     {
       "path": "../../libraries/error-handler"

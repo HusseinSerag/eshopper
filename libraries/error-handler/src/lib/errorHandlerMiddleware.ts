@@ -59,6 +59,11 @@ export function ErrorHandlerMiddleware(
 
   // Handle different types of errors
   if (error instanceof AppError) {
+    if (error.shouldExit) {
+      // send a sigint signal to the process
+      process.kill(process.pid, 'SIGINT');
+      return;
+    }
     // Handle operational errors (expected errors)
     errorResponse.status = error.resCode;
     errorResponse.message = error.message;
