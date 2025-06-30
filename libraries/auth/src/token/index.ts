@@ -2,6 +2,7 @@ import { SignOptions } from 'jsonwebtoken';
 import { TokenManager } from '../jwt';
 import { hashString } from '@eshopper/utils';
 import { VerifyOptions } from 'jsonwebtoken';
+import { logger } from '@eshopper/logger';
 
 type TokenType = 'access' | 'refresh';
 
@@ -27,22 +28,45 @@ export class TokenProvider {
       options: {
         ...options,
         expiresIn: type === 'refresh' ? '7d' : '15m',
-        algorithm: 'HS256',
       },
       type: this.typeToTokenType(type),
     });
   }
 
-  generateTokens({ data, options }: Omit<TokenGenerationOptions, 'type'>) {
-    const accessToken = this.generateToken({ data, options, type: 'access' });
-    const hashedAccessToken = hashString(accessToken);
+  async generateTokens({
+    data,
+    options,
+  }: Omit<TokenGenerationOptions, 'type'>) {
+    const accessToken = this.generateToken({
+      data: {
+        userId: data.userId,
+      },
+      options,
+      type: 'access',
+    });
+    logger.info(`Generated access token:}`, {
+      data: this.decodeToken({
+        token: accessToken,
+      }),
+    });
+
+    const hashedAccessToken = await hashString(accessToken);
+    const refreshToken = this.generateToken({
+      data: {
+        ...data,
+        accessToken: hashedAccessToken,
+      },
+      options,
+      type: 'refresh',
+    });
+    logger.info(`Generated refresh token:`, {
+      data: this.decodeToken({
+        token: refreshToken,
+      }),
+    });
     return {
       accessToken,
-      refreshToken: this.generateToken({
-        data: { ...data, accessToken: hashedAccessToken },
-        options,
-        type: 'refresh',
-      }),
+      refreshToken,
     };
   }
 

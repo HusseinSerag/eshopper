@@ -1,4 +1,5 @@
 import type { Request } from 'express';
+import { Session, Users } from '@eshopper/database';
 export interface IRequest<
   Params = any,
   ResBody = any,
@@ -7,4 +8,6 @@ export interface IRequest<
   Locals extends Record<string, any> = Record<string, any>
 > extends Request<Params, ResBody, ReqBody, Query, Locals> {
   userId?: string;
+  user?: Users;
+  session?: Session;
 }

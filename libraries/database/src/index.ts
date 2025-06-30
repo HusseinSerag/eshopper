@@ -25,3 +25,8 @@ export class DatabaseProvider {
     return this.prisma;
   }
 }
+
+import type { Session, Users as PrismaUsers, Avatar } from '@prisma/client';
+type Users = Omit<PrismaUsers, 'password'>;
+
+export type { Session, Users, Avatar };

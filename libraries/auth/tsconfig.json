@@ -4,10 +4,22 @@
   "include": [],
   "references": [
     {
-      "path": "../global-configuration"
+      "path": "../logger"
     },
     {
       "path": "../utils"
+    },
+    {
+      "path": "../redis"
+    },
+    {
+      "path": "../database"
+    },
+    {
+      "path": "../error-handler"
+    },
+    {
+      "path": "../global-configuration"
     },
     {
       "path": "./tsconfig.lib.json"

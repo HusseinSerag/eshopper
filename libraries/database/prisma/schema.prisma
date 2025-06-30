@@ -17,7 +17,7 @@ model Avatar {
   updatedAt DateTime @updatedAt
   file_id String?
   userId String? @db.ObjectId @unique
-  users Users? @relation(fields: [userId], references: [id])
+  users Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 model Users {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -42,11 +42,11 @@ model Session {
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+  expiresAt     DateTime
   
   
   // Relations
-  user          Users     @relation(fields: [userId], references: [id])
+  user          Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([refreshToken])

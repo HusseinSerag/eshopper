@@ -104,4 +104,8 @@ export class Redis {
       await this.client.quit();
     }
   }
+  async incr(key: string) {
+    await this.connect();
+    return await this.client.incr(key);
+  }
 }

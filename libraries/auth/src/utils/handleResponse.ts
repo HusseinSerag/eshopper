@@ -24,3 +24,11 @@ export function populateResponseWithTokens(
   res.setHeader('fallback_refresh_token', refreshToken);
   return { accessToken, refreshToken };
 }
+
+export function removeTokensFromResponse(res: ResponseAdapter<CookieOptions>) {
+  res.clearCookie('accessToken');
+  res.clearCookie('refreshToken');
+  res.clearHeader?.('fallback_access_token');
+  res.clearHeader?.('fallback_refresh_token');
+  res.clearHeader?.('Authorization');
+}

@@ -10,20 +10,14 @@ export class ConfigProvider<T extends z.ZodSchema> {
     dotenv.config({
       //  path: path.resolve(__dirname, 'src', 'config', '.env'),
     });
-
     try {
-      const parsed = schema.parse(process.env);
-
-      this._config = Object.freeze(parsed);
+      const parsed = schema.safeParse(process.env);
+      if (!parsed.success) {
+        throw Error(JSON.stringify(parsed.error.errors));
+      }
+      this._config = Object.freeze(parsed.data);
     } catch (e: unknown) {
-      throw new AppError(
-        `Config keys are missing: ${
-          e instanceof Error ? e.message : 'Unknown error'
-        }`,
-        StatusCode.INTERNAL_SERVER_ERROR,
-        StatusCode.INTERNAL_SERVER_ERROR,
-        false
-      );
+      process.exit(1);
     }
   }
 

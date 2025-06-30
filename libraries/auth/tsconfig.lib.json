@@ -11,10 +11,22 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
-      "path": "../global-configuration/tsconfig.lib.json"
+      "path": "../logger/tsconfig.lib.json"
     },
     {
       "path": "../utils/tsconfig.lib.json"
+    },
+    {
+      "path": "../redis/tsconfig.lib.json"
+    },
+    {
+      "path": "../database/tsconfig.lib.json"
+    },
+    {
+      "path": "../error-handler/tsconfig.lib.json"
+    },
+    {
+      "path": "../global-configuration/tsconfig.lib.json"
     }
   ]
 }

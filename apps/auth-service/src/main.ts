@@ -10,23 +10,31 @@ import { setupApp } from '@eshopper/global-configuration';
 import { ConfigProvider } from '@eshopper/config-provider';
 import { ConfigSchema } from './config/config.schema';
 import { DatabaseProvider } from '@eshopper/database';
+
 import { createRoutes } from './routes/auth.routes';
 import { Redis } from '@eshopper/redis';
 import { TokenProvider } from '@eshopper/auth';
 
 export const config = new ConfigProvider(ConfigSchema);
 export const dbProvider = new DatabaseProvider(config.get('DATABASE_URL'));
+
+import { UnverifiedUserCleanupJob } from './jobs/deleteUserJob';
+import { SessionCleanupJob } from './jobs/deleteSessionJobs';
+
 export const redisProvider = new Redis({
   type: 'url',
   url: config.get('REDIS_URL'),
 });
+
 export const tokenProvider = new TokenProvider(
   config.get('ACCESS_TOKEN_SECRET'),
   config.get('REFRESH_TOKEN_SECRET')
 );
+
 async function startApp() {
   setupErrorMonitoring(() => {
     dbProvider.disconnect();
+    redisProvider.close();
   });
   dbProvider.connect();
   const host = config.get('HOST');
@@ -67,16 +75,23 @@ async function startApp() {
   process.on('SIGINT', (signal) =>
     GracefulShutdownHandler(signal, app, () => {
       dbProvider.disconnect();
+      redisProvider.close();
     })
   );
 
   process.on('SIGTERM', (signal) =>
     GracefulShutdownHandler(signal, app, () => {
       dbProvider.disconnect();
+      redisProvider.close();
     })
   );
 
   return app;
 }
 
-startApp();
+startApp().then(() => {
+  const unverifiedUserCleanupJob = new UnverifiedUserCleanupJob(dbProvider);
+  const expiredSessionCleanupJob = new SessionCleanupJob(dbProvider);
+  unverifiedUserCleanupJob.start();
+  expiredSessionCleanupJob.start();
+});

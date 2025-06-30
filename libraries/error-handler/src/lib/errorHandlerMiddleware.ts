@@ -6,6 +6,7 @@ import { logger } from '@eshopper/logger';
 interface ErrorResponse {
   isError: boolean;
   status: number;
+  errorCode: number;
   message: string;
   data?: Record<string, any>;
   stack?: string;
@@ -55,10 +56,12 @@ export function ErrorHandlerMiddleware(
     path: req.path,
     method: req.method,
     requestId,
+    errorCode: StatusCode.INTERNAL_SERVER_ERROR,
   };
 
   // Handle different types of errors
   if (error instanceof AppError) {
+    errorResponse.errorCode = error.statusCode;
     if (error.shouldExit) {
       // send a sigint signal to the process
       process.kill(process.pid, 'SIGINT');
