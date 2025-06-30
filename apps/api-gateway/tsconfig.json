@@ -4,7 +4,7 @@
   "include": [],
   "references": [
     {
-      "path": "../../libraries/database"
+      "path": "../../libraries/error-handler"
     },
     {
       "path": "../../libraries/config-provider"
@@ -13,13 +13,7 @@
       "path": "../../libraries/global-configuration"
     },
     {
-      "path": "../../libraries/error-handler"
-    },
-    {
       "path": "./tsconfig.app.json"
-    },
-    {
-      "path": "./tsconfig.spec.json"
     }
   ]
 }

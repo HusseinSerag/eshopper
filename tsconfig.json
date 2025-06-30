@@ -8,6 +8,27 @@
     },
     {
       "path": "./apps/auth-service"
+    },
+    {
+      "path": "./apps/api-gateway"
+    },
+    {
+      "path": "./libraries/logger"
+    },
+    {
+      "path": "./libraries/error-handler"
+    },
+    {
+      "path": "./libraries/global-configuration"
+    },
+    {
+      "path": "./libraries/config-provider"
+    },
+    {
+      "path": "./libraries/database"
+    },
+    {
+      "path": "./libraries/database"
     }
   ]
 }
