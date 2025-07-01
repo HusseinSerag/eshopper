@@ -7,16 +7,22 @@
       "path": "../../libraries/utils"
     },
     {
+      "path": "../../libraries/logger"
+    },
+    {
       "path": "../../libraries/middleware"
+    },
+    {
+      "path": "../../libraries/kafka"
     },
     {
       "path": "../../libraries/redis"
     },
     {
-      "path": "../../libraries/database"
+      "path": "../../libraries/config-provider"
     },
     {
-      "path": "../../libraries/config-provider"
+      "path": "../../libraries/database"
     },
     {
       "path": "../../libraries/global-configuration"

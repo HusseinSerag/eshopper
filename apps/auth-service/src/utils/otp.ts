@@ -1,4 +1,4 @@
-import { config, redisProvider } from '../main';
+import { config, redisProvider, kafkaProvider } from '../provider';
 
 export function generateOTP() {
   // generate 6 digit otp
@@ -8,7 +8,19 @@ export function generateOTP() {
 // handling user otp ----> sending otp and saving to redis
 export async function handleUserOtp(email: string) {
   const otp = generateOTP();
-  // email.send(email, otp);
+
+  // Send OTP message to Kafka for notification service to process
+  await kafkaProvider.sendMessage({
+    topic: 'notifications',
+    key: email,
+    value: JSON.stringify({
+      type: 'EMAIL',
+      channel: 'OTP_VERIFICATION',
+      email,
+      otp,
+      userName: email,
+    }),
+  });
 
   // save otp to redis for ttl
   await redisProvider.setTTL(`otp:${email}`, otp, 60 * 5); // 5 minutes

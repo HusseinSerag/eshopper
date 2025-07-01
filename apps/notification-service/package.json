@@ -1,10 +1,7 @@
 {
-  "name": "@eshopper/auth-service",
+  "name": "@eshopper/notification-service",
   "version": "0.0.1",
   "private": true,
-  "scripts": {
-    "swagger": "node src/swagger.js"
-  },
   "nx": {
     "targets": {
       "build": {
@@ -15,15 +12,20 @@
         "defaultConfiguration": "production",
         "options": {
           "platform": "node",
-          "outputPath": "apps/auth-service/dist",
+          "outputPath": "apps/notification-service/dist",
           "format": [
             "cjs"
           ],
           "bundle": false,
-          "main": "apps/auth-service/src/main.ts",
-          "tsConfig": "apps/auth-service/tsconfig.app.json",
+          "main": "apps/notification-service/src/main.ts",
+          "tsConfig": "apps/notification-service/tsconfig.app.json",
           "assets": [
-            "apps/auth-service/src/assets"
+            "apps/notification-service/src/assets",
+            {
+              "input": "apps/notification-service/assets/templates",
+              "glob": "**/*",
+              "output": "templates"
+            }
           ],
           "esbuildOptions": {
             "sourcemap": true,
@@ -53,15 +55,15 @@
           "build"
         ],
         "options": {
-          "buildTarget": "@eshopper/auth-service:build",
+          "buildTarget": "@eshopper/notification-service:build",
           "runBuildTargetDependencies": false
         },
         "configurations": {
           "development": {
-            "buildTarget": "@eshopper/auth-service:build:development"
+            "buildTarget": "@eshopper/notification-service:build:development"
           },
           "production": {
-            "buildTarget": "@eshopper/auth-service:build:production"
+            "buildTarget": "@eshopper/notification-service:build:production"
           }
         }
       },
@@ -69,21 +71,17 @@
         "options": {
           "passWithNoTests": true
         }
-      },
-      "docker-build": {
-        "dependsOn": [
-          "build"
-        ],
-        "command": "docker build -f apps/auth-service/Dockerfile . -t eshopper-auth-service"
       }
     }
   },
   "dependencies": {
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "nodemailer": "^6.9.7",
+    "ejs": "^3.1.9",
+    "handlebars": "^4.7.8",
+    "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/swagger-jsdoc": "^6.0.4",
-    "@types/swagger-ui-express": "^4.1.8"
+    "@types/nodemailer": "^6.4.14",
+    "@types/ejs": "^3.1.5"
   }
 }

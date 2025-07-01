@@ -4,7 +4,11 @@ import cors from 'cors';
 import { setupApp } from '@eshopper/global-configuration';
 import { ConfigProvider } from '@eshopper/config-provider';
 import { ConfigSchema } from './config/config.schema';
-import { setupErrorMonitoring } from '@eshopper/error-handler';
+import {
+  ErrorHandlerMiddleware,
+  NotFoundHandler,
+  setupErrorMonitoring,
+} from '@eshopper/error-handler';
 
 setupErrorMonitoring(() => {
   console.log('error');
@@ -30,7 +34,10 @@ app.get('/', (req, res) => {
 });
 
 app.use('/auth', proxy(config.get('AUTH_SERVICE')));
+app.use('/notification', proxy(config.get('NOTIFICATION_SERVICE')));
 
+app.use(NotFoundHandler);
+app.use(ErrorHandlerMiddleware);
 app.listen(port, host, () => {
   console.log(`[ready] http://${host}:${port}`);
 });

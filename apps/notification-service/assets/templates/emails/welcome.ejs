@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to eShopper!</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f4f4f4;
+      }
+      .container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        padding: 40px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .logo {
+        font-size: 28px;
+        font-weight: bold;
+        color: #2563eb;
+        margin-bottom: 10px;
+      }
+      .title {
+        font-size: 24px;
+        color: #1f2937;
+        margin-bottom: 20px;
+      }
+      .welcome-message {
+        background-color: #ecfdf5;
+        border: 1px solid #10b981;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        text-align: center;
+      }
+      .message {
+        color: #6b7280;
+        margin-bottom: 20px;
+      }
+      .features {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .feature-item {
+        margin: 10px 0;
+        padding-left: 20px;
+        position: relative;
+      }
+      .feature-item:before {
+        content: '✓';
+        color: #10b981;
+        font-weight: bold;
+        position: absolute;
+        left: 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #e5e7eb;
+        color: #9ca3af;
+        font-size: 14px;
+      }
+      .support-link {
+        color: #2563eb;
+        text-decoration: none;
+      }
+      .support-link:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo"><%= appName %></div>
+        <h1 class="title">Welcome to <%= appName %>!</h1>
+      </div>
+
+      <div class="welcome-message">
+        <h2>🎉 Welcome aboard, <%= userName %>!</h2>
+        <p>
+          Your account has been successfully verified and you're now part of our
+          community.
+        </p>
+      </div>
+
+      <p class="message">
+        We're excited to have you join us! Here's what you can do with your new
+        account:
+      </p>
+
+      <div class="features">
+        <div class="feature-item">Browse our extensive product catalog</div>
+        <div class="feature-item">Save items to your wishlist</div>
+        <div class="feature-item">Track your orders in real-time</div>
+        <div class="feature-item">Get personalized recommendations</div>
+        <div class="feature-item">Enjoy exclusive member discounts</div>
+      </div>
+
+      <p class="message">
+        Start exploring our platform and discover amazing products at great
+        prices. If you have any questions or need assistance, our support team
+        is here to help!
+      </p>
+
+      <div class="footer">
+        <p>
+          If you have any questions, please contact us at
+          <a href="mailto:<%= supportEmail %>" class="support-link"
+            ><%= supportEmail %></a
+          >
+        </p>
+        <p>&copy; 2024 <%= appName %>. All rights reserved.</p>
+      </div>
+    </div>
+  </body>
+</html>

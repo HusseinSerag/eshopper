@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/out-tsc/apps/notification-service",
+    "types": ["node"]
+  },
+  "files": ["src/main.ts"],
+  "include": ["src/**/*"],
+  "exclude": ["jest.config.ts", "src/**/*.spec.ts", "src/**/*.test.ts"],
+  "references": [
+    {
+      "path": "../../libraries/config-provider/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/logger/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/kafka/tsconfig.lib.json"
+    }
+  ]
+}

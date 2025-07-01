@@ -1,3 +1,4 @@
+import { dbProvider, redisProvider, kafkaProvider } from './provider';
 import express from 'express';
 import {
   NotFoundHandler,
@@ -9,34 +10,19 @@ import cors from 'cors';
 import { setupApp } from '@eshopper/global-configuration';
 import { ConfigProvider } from '@eshopper/config-provider';
 import { ConfigSchema } from './config/config.schema';
-import { DatabaseProvider } from '@eshopper/database';
-
-import { createRoutes } from './routes/auth.routes';
-import { Redis } from '@eshopper/redis';
-import { TokenProvider } from '@eshopper/auth';
-
 export const config = new ConfigProvider(ConfigSchema);
-export const dbProvider = new DatabaseProvider(config.get('DATABASE_URL'));
-
-import { UnverifiedUserCleanupJob } from './jobs/deleteUserJob';
+import { createRoutes } from './routes/auth.routes';
 import { SessionCleanupJob } from './jobs/deleteSessionJobs';
-
-export const redisProvider = new Redis({
-  type: 'url',
-  url: config.get('REDIS_URL'),
-});
-
-export const tokenProvider = new TokenProvider(
-  config.get('ACCESS_TOKEN_SECRET'),
-  config.get('REFRESH_TOKEN_SECRET')
-);
+import { UnverifiedUserCleanupJob } from './jobs/deleteUserJob';
 
 async function startApp() {
   setupErrorMonitoring(() => {
     dbProvider.disconnect();
     redisProvider.close();
+    kafkaProvider.disconnect();
   });
   dbProvider.connect();
+  await kafkaProvider.connect();
   const host = config.get('HOST');
   const port = config.get('PORT');
 
@@ -65,7 +51,9 @@ async function startApp() {
     });
   });
 
+  // Mount all auth routes under /auth
   createRoutes(app);
+
   app.use(NotFoundHandler);
   app.use(ErrorHandlerMiddleware);
   app.listen(port, host, () => {
@@ -76,6 +64,7 @@ async function startApp() {
     GracefulShutdownHandler(signal, app, () => {
       dbProvider.disconnect();
       redisProvider.close();
+      kafkaProvider.disconnect();
     })
   );
 
@@ -83,6 +72,7 @@ async function startApp() {
     GracefulShutdownHandler(signal, app, () => {
       dbProvider.disconnect();
       redisProvider.close();
+      kafkaProvider.disconnect();
     })
   );
 

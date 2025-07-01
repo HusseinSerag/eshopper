@@ -10,8 +10,10 @@ export class ConfigProvider<T extends z.ZodSchema> {
     dotenv.config({
       //  path: path.resolve(__dirname, 'src', 'config', '.env'),
     });
+
     try {
       const parsed = schema.safeParse(process.env);
+
       if (!parsed.success) {
         throw Error(JSON.stringify(parsed.error.errors));
       }

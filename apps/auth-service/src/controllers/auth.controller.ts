@@ -1,4 +1,5 @@
 import {
+  BadRequestError,
   AppError,
   asyncErrorHandler,
   StatusCode,
@@ -7,6 +8,8 @@ import { Request, Response } from 'express';
 import {
   LoginUserSchema,
   RegisterUserSchema,
+  ResetPasswordRequestSchema,
+  ResetPasswordSchema,
   VerifyEmailSchema,
 } from '../schemas/auth.schema';
 import { z } from 'zod';
@@ -19,20 +22,26 @@ import {
   logAllOut,
   loginService,
   refreshTokens,
+  resetPasswordRequest,
+  resetPassword,
 } from '../services/auth.service';
-import { tokenProvider } from '../main';
+import { redisProvider, tokenProvider } from '../provider';
 import {
   populateResponseWithTokens,
   removeTokensFromResponse,
 } from '@eshopper/auth';
 import { sendOtpFirstTime } from '../utils/otp';
 import { IRequest } from '@eshopper/global-configuration';
+import { checkAccountStatus } from '@eshopper/auth';
 export const LoginController = asyncErrorHandler(
   async (
     req: IRequest<unknown, unknown, z.infer<typeof LoginUserSchema>['body']>,
     res: Response
   ) => {
     const user = await loginService(req.body.email, req.body.password);
+    await checkAccountStatus(redisProvider, user, {
+      checkEmailVerification: false,
+    });
     const tokens = await tokenProvider.generateTokens({
       data: { userId: user.id },
       options: {},
@@ -106,6 +115,9 @@ const SignupController = asyncErrorHandler(
 const ResendVerificationEmailController = asyncErrorHandler(
   async (req: IRequest, res: Response) => {
     const user = req.user;
+    if (user?.isVerified) {
+      throw new BadRequestError('Email already verified');
+    }
     await resendVerificationEmail(user?.email || '');
     res.json({
       message: 'OTP resent successfully',
@@ -200,6 +212,51 @@ const RefreshTokensController = asyncErrorHandler(
   }
 );
 
+const ResetPasswordRequestController = asyncErrorHandler(
+  async (
+    req: Request<
+      unknown,
+      unknown,
+      z.infer<typeof ResetPasswordRequestSchema>['body']
+    >,
+    res: Response
+  ) => {
+    await resetPasswordRequest(req.body.email);
+    res.status(200).json({
+      message:
+        'Reset password instructions will be sent to this email shortly if it exists',
+    });
+  }
+);
+
+export const ResetPasswordController = asyncErrorHandler(
+  async (
+    req: Request<unknown, unknown, z.infer<typeof ResetPasswordSchema>['body']>,
+    res: Response
+  ) => {
+    const token = Array.isArray(req.query.token)
+      ? req.query.token[0]
+      : req.query.token;
+
+    if (typeof token !== 'string') {
+      throw new AppError(
+        'Token is required',
+        StatusCode.BAD_REQUEST,
+        StatusCode.BAD_REQUEST,
+        true
+      );
+    }
+    const userId = await resetPassword(req.body.password, token);
+    // see if log out all devices is true
+    if (req.body.logOutAllDevices) {
+      await logAllOut(userId);
+    }
+    res.json({
+      message: 'Password reset successfully',
+    });
+  }
+);
+
 export {
   SignupController,
   ResendVerificationEmailController,
@@ -207,4 +264,5 @@ export {
   LogoutController,
   LogAllOutController,
   RefreshTokensController,
+  ResetPasswordRequestController,
 };

@@ -143,32 +143,54 @@ interface CheckAccountStatusOptions {
   checkEmailVerification?: boolean;
   checkBlocked?: boolean;
 }
-export function checkAccountStatusMiddleware(
+
+interface UserPayload {
+  id: string;
+  isVerified: boolean;
+}
+export async function checkAccountStatus(
   redis: Redis,
-  options: CheckAccountStatusOptions = {
+  user: UserPayload,
+  userOptions?: CheckAccountStatusOptions
+) {
+  const options = {
     checkEmailVerification: true,
     checkBlocked: true,
+    ...userOptions,
+  };
+  if (options.checkEmailVerification && !user.isVerified) {
+    throw new AuthenticationError(
+      'Account is not verified please verify your email'
+    );
   }
+
+  if (options.checkBlocked) {
+    const blockedTime = await redis.get(`blocked:${user.id}`);
+
+    if (blockedTime) {
+      const timeLeft = parseInt(blockedTime) - Date.now();
+      throw new AuthenticationError(
+        `Account is blocked for ${timeLeft} seconds please contact support`
+      );
+    }
+  }
+}
+export function checkAccountStatusMiddleware(
+  redis: Redis,
+  userOptions?: CheckAccountStatusOptions
 ) {
+  const options = {
+    checkEmailVerification: true,
+    checkBlocked: true,
+    ...userOptions,
+  };
+
   return asyncErrorHandler(async function (
     req: IRequest,
     res: Response,
     next: NextFunction
   ) {
-    if (options?.checkEmailVerification && !req.user?.isVerified) {
-      throw new AuthenticationError(
-        'Account is not verified please verify your email'
-      );
-    }
-    if (options?.checkBlocked) {
-      const blockedTime = await redis.get(`blocked:${req.user?.id}`);
-      if (blockedTime) {
-        const timeLeft = parseInt(blockedTime) - Date.now();
-        throw new AuthenticationError(
-          `Account is blocked for ${timeLeft} seconds please contact support`
-        );
-      }
-    }
+    await checkAccountStatus(redis, req.user!, options);
     next();
   });
 }

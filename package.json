@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "nx run-many -t serve",
-    "build": "nx run-many -t build",
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && nx run-many -t serve",
+    "build": "set NODE_OPTIONS=--max-old-space-size=4096 && nx run-many -t build",
     "clean": "nx run-many -t clean",
     "db:generate": "cd libraries/database && npx prisma generate",
     "db:push": "cd libraries/database && npx prisma db push",
@@ -18,12 +18,16 @@
     "axios": "^1.6.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "ejs": "^3.1.9",
     "express": "^4.21.2",
     "express-http-proxy": "^2.1.1",
     "express-rate-limit": "^7.5.1",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
+    "kafkajs": "^2.2.4",
     "node-cron": "^4.1.1",
+    "nodemailer": "^6.9.7",
+    "swagger-autogen": "^2.23.7",
     "ua-parser-js": "^2.0.4",
     "winston": "^3.17.0",
     "zod": "^3.25.67"
@@ -72,6 +76,7 @@
     "libraries/config-provider",
     "libraries/database",
     "libraries/middleware",
+    "libraries/kafka",
     "libraries/*"
   ]
 }

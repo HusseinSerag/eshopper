@@ -117,6 +117,18 @@ export class ValidationError extends AppError {
   }
 }
 
+export class BadRequestError extends AppError {
+  constructor(message = 'Bad request', details?: Record<string, any>) {
+    super(
+      message,
+      StatusCode.BAD_REQUEST,
+      StatusCode.BAD_REQUEST,
+      true,
+      details
+    );
+  }
+}
+
 export class AuthenticationError extends AppError {
   constructor(message = 'Authentication failed') {
     super(message, StatusCode.UNAUTHORIZED, StatusCode.UNAUTHORIZED, true);

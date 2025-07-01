@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../libraries/config-provider"
+    },
+    {
+      "path": "../../libraries/logger"
+    },
+    {
+      "path": "../../libraries/kafka"
+    }
+  ]
+}

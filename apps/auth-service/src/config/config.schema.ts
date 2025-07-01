@@ -11,6 +11,8 @@ export const ConfigSchema = z.object({
   REDIS_URL: z.string(),
   ACCESS_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
+  KAFKA_BROKERS: z.string().default('localhost:9092'),
+  KAFKA_CLIENT_ID: z.string().default('auth-service'),
   MAX_OTP_COUNT: z
     .string()
     .transform((val) => parseInt(val, 10))
@@ -39,4 +41,38 @@ export const ConfigSchema = z.object({
     .string()
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1)),
+  MAX_RESET_PASSWORD_COUNT: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  RESET_PASSWORD_COOLDOWN_TIME: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  RESET_PASSWORD_COOLDOWN_BASE_TIME: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  RESET_PASSWORD_COOLDOWN_STEP: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  MAX_RESET_PASSWORD_COOLDOWN_TIME: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  CLIENT_ORIGIN: z.string(),
+  MAX_FALSE_TOKEN_COUNT_WINDOW: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  MAX_FALSE_TOKEN_COUNT: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  MAX_PASSWORD_CHANGE_WINDOW: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1)),
+  NODE_ENV: z.string().default('development'),
 });

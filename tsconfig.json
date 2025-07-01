@@ -28,13 +28,7 @@
       "path": "./libraries/database"
     },
     {
-      "path": "./libraries/database"
-    },
-    {
       "path": "./libraries/middleware"
-    },
-    {
-      "path": "./libraries/utils"
     },
     {
       "path": "./libraries/utils"
@@ -44,6 +38,12 @@
     },
     {
       "path": "./libraries/auth"
+    },
+    {
+      "path": "./apps/notification-service"
+    },
+    {
+      "path": "./libraries/kafka"
     }
   ]
 }
