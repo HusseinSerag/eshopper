@@ -208,7 +208,7 @@ export class RefreshTokenError extends AppError {
   constructor(
     message = 'Refresh token error',
     details?: Record<string, any>,
-    resCode: number = StatusCode.BAD_REQUEST,
+    resCode: number = StatusCode.UNAUTHORIZED,
     statusCode: number = StatusCode.REFRESH_TOKEN_EXPIRED
   ) {
     super(message, resCode, statusCode, true, details);
@@ -222,7 +222,7 @@ export class RefreshTokenExpiredError extends RefreshTokenError {
     super(
       message,
       details,
-      StatusCode.BAD_REQUEST,
+      StatusCode.UNAUTHORIZED,
       StatusCode.REFRESH_TOKEN_EXPIRED
     );
   }
@@ -236,7 +236,7 @@ export class RefreshTokenInvalidError extends RefreshTokenError {
     super(
       message,
       details,
-      StatusCode.BAD_REQUEST,
+      StatusCode.UNAUTHORIZED,
       StatusCode.REFRESH_TOKEN_INVALID
     );
   }

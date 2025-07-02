@@ -1,0 +1,29 @@
+{
+  "name": "@eshopper/client-auth",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.esm.js",
+  "module": "./dist/index.esm.js",
+  "types": "./dist/index.esm.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    "./client": {
+      "development": "./src/client/index.ts",
+      "types": "./dist/client/index.esm.d.ts",
+      "import": "./dist/client/index.esm.js",
+      "default": "./dist/client/index.esm.js"
+    },
+    "./server": {
+      "development": "./src/server/index.ts",
+      "types": "./dist/server/index.esm.d.ts",
+      "import": "./dist/server/index.esm.js",
+      "default": "./dist/server/index.esm.js"
+    },
+    ".": {
+      "development": "./src/index.ts",
+      "types": "./dist/index.esm.d.ts",
+      "import": "./dist/index.esm.js",
+      "default": "./dist/index.esm.js"
+    }
+  }
+}

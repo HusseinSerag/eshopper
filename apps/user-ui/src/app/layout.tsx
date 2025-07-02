@@ -1,4 +1,5 @@
 import './global.css';
+import { ClientProviders } from '@/components/client-providers/providers';
 
 export const metadata = {
   title: 'Welcome to user-ui',
@@ -11,8 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <ClientProviders>
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    </ClientProviders>
   );
 }

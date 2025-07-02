@@ -24,8 +24,15 @@ setupApp(app);
 
 app.use(
   cors({
-    origin: config.get('CLIENT_ORIGIN').split(','),
+    origin: config.get('CLIENT_ORIGIN'),
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'fallback_access_token',
+      'fallback_refresh_token',
+    ],
   })
 );
 
@@ -33,7 +40,41 @@ app.get('/', (req, res) => {
   res.send({ message: 'API Gateway' });
 });
 
-app.use('/auth', proxy(config.get('AUTH_SERVICE')));
+app.use(
+  '/auth',
+  proxy(config.get('AUTH_SERVICE'), {
+    proxyReqOptDecorator: (proxyReqOpts, srcReq) => {
+      if (proxyReqOpts.headers && 'x-forwarded-host' in proxyReqOpts.headers) {
+        proxyReqOpts.headers['x-forwarded-host'] = srcReq.headers.host;
+      }
+      return proxyReqOpts;
+    },
+    userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
+      const authHeader = proxyRes.headers['authorization'];
+      const accessToken = proxyRes.headers['fallback_access_token'];
+      const refreshToken = proxyRes.headers['fallback_refresh_token'];
+
+      if (authHeader) {
+        userRes.setHeader('Authorization', authHeader);
+      }
+      if (accessToken) {
+        userRes.setHeader('Fallback_access_token', accessToken);
+      }
+      if (refreshToken) {
+        userRes.setHeader('Fallback_refresh_token', refreshToken);
+      }
+
+      // Ensure these are exposed to frontend
+      userRes.setHeader(
+        'Access-Control-Expose-Headers',
+        'Authorization, Fallback_access_token, Fallback_refresh_token'
+      );
+
+      return proxyResData;
+    },
+    preserveHostHdr: true,
+  })
+);
 app.use('/notification', proxy(config.get('NOTIFICATION_SERVICE')));
 
 app.use(NotFoundHandler);
