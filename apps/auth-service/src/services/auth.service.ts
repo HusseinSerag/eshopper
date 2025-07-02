@@ -459,7 +459,7 @@ export async function resetPasswordRequest(email: string) {
     return;
   }
   const isBlocked = await isUserBlocked(user.id);
-  if (isBlocked || !user.isVerified) {
+  if (isBlocked || !user.isVerified || !user.password) {
     return;
   }
   const isAllowed = await checkResetPasswordRestrictions(email);
