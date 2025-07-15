@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "composite": true,
+    "rootDir": ".",
     "declarationMap": true,
     "emitDeclarationOnly": true,
     "importHelpers": true,
@@ -16,6 +17,10 @@
     "skipLibCheck": true,
     "strict": true,
     "target": "es2022",
-    "customConditions": ["development"]
+    "customConditions": ["development"],
+    "paths": {
+      "@libraries/ui": ["./libraries/ui/src/index.ts"],
+      "@libraries/ui/*": ["./libraries/ui/src/*"]
+    }
   }
 }

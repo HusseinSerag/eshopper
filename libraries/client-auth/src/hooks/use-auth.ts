@@ -1,35 +1,53 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getAuthClient } from '../lib/client-auth';
-import { User } from '../types';
+import { useQuery } from '@tanstack/react-query';
+
+import type { User, MeResponse } from '@eshopper/shared-types';
 import { useAuthContext } from '../context/useAuthContext';
+import { BlockedError } from '../lib/errors';
 
 export function useAuth() {
-  const queryClient = useQueryClient();
   const authContext = useAuthContext();
-  const authClient = getAuthClient(queryClient, authContext.baseUrl);
+
   const {
     data: user,
     isPending: isLoading,
     isError,
     refetch,
-  } = useQuery<User | null>({
+  } = useQuery<
+    | { user: User; success: true }
+    | {
+        success: false;
+        user: null;
+        isBlocked: boolean;
+      }
+  >({
     queryKey: ['auth', 'user'],
     queryFn: async () => {
       try {
-        const user = (await authClient.request({
-          url: authContext.baseUrl + '/auth/me',
-          method: 'GET',
-          baseUrl: authContext.baseUrl,
-        })) as User;
-        return user;
-      } catch {
-        return null;
+        const response = (await authContext.httpClient.request({
+          url: '/auth/me',
+          method: 'get',
+        })) as MeResponse;
+        return { user: response.user, success: true };
+      } catch (e) {
+        if (e instanceof BlockedError)
+          return {
+            success: false,
+            user: null,
+            isBlocked: true,
+          };
+        return {
+          success: false,
+          user: null,
+          isBlocked: false,
+        };
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false, // don't retry
   });
 
-  const isAuthenticated = !!user && !isError && !isLoading;
-  return { user, isAuthenticated, isLoading, refetch };
+  const isAuthenticated = !isLoading && !isError && user.success && !!user.user;
+  const isBlocked = !isLoading && !isError && !user.success && user.isBlocked;
+
+  return { user, isAuthenticated, isLoading, refetch, isBlocked };
 }

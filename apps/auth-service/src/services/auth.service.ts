@@ -15,7 +15,7 @@ import {
 } from '@eshopper/error-handler';
 import { compareString, getDeviceInfo, hashString } from '@eshopper/utils';
 import { handleUserOtp } from '../utils/otp';
-import { Users } from '@eshopper/database';
+import { Account } from '@eshopper/database';
 import {
   checkAccountStatus,
   extractToken,
@@ -31,13 +31,13 @@ import {
 export async function SignupService(
   data: z.infer<typeof RegisterUserSchema>['body']
 ) {
-  const { email, password } = data;
-  const user = await dbProvider.getPrisma().users.findUnique({
+  const { email, password, name } = data;
+  const ownership = await dbProvider.getPrisma().emailOwnership.findUnique({
     where: {
       email,
     },
   });
-  if (user) {
+  if (ownership) {
     throw new AppError(
       'User already exists',
       StatusCode.BAD_REQUEST,
@@ -45,16 +45,30 @@ export async function SignupService(
       true
     );
   }
-  const hashedPassword = await hashString(password);
-  // create user
-  const newUser = await dbProvider.getPrisma().users.create({
+
+  const user = await dbProvider.getPrisma().users.create({
     data: {
-      email,
-      password: hashedPassword,
+      name,
+      emailOwnership: {
+        create: [{ email, isVerified: false }],
+      },
+      account: {
+        create: [
+          {
+            email,
+            type: 'PASSWORD',
+            password: await hashString(password),
+            isPrimary: true,
+          },
+        ],
+      },
+    },
+    include: {
+      account: true,
     },
   });
 
-  return newUser;
+  return { email, userId: user.id, accountId: user.account[0].id };
 }
 
 export async function saveTokensToDatabase(
@@ -63,6 +77,7 @@ export async function saveTokensToDatabase(
   userId: string,
   userAgent: string,
   ipAddress: string,
+  accountId: string,
   sessionId?: string
 ) {
   const prisma = dbProvider.getPrisma();
@@ -93,11 +108,35 @@ export async function saveTokensToDatabase(
         userId,
         deviceInfo: getDeviceInfo(userAgent),
         expiresAt,
+        accountId,
       },
     });
   }
 }
 
+export async function getVerificationInfoService(email: string) {
+  const cooldown = await redisProvider.getTTLTimeLeft(`otp_cooldown:${email}`);
+  console.log(cooldown);
+  const numberOfRequestsPerWindow = await redisProvider.get(
+    `otp_cooldown_count:${email}`
+  );
+  const invalidOtpCount = await redisProvider.get(`invalid_otp_count:${email}`);
+  const maxInvalidOTP = config.get('MAX_INVALID_OTP_COUNT');
+  const maxResendRequests = config.get('MAX_OTP_COUNT');
+  const newRequestWindow = await redisProvider.getTTLTimeLeft(
+    `otp_cooldown_count:${email}`
+  );
+  return {
+    cooldown: cooldown,
+    numberOfRequestsPerWindow: numberOfRequestsPerWindow
+      ? parseInt(numberOfRequestsPerWindow, 10)
+      : 0,
+    invalidOtpCount: invalidOtpCount ? parseInt(invalidOtpCount, 10) : 0,
+    maxInvalidOTP,
+    maxResendRequests,
+    newRequestWindow,
+  };
+}
 async function checkOtpRestrictions(email: string) {
   const cooldown = await redisProvider.get(`otp_cooldown:${email}`);
   if (!cooldown) {
@@ -129,7 +168,7 @@ async function checkOtpRestrictions(email: string) {
     const step = config.get('OTP_COOLDOWN_STEP');
     await redisProvider.setTTL(
       `otp_cooldown:${email}`,
-      `1`,
+      (config.get('OTP_COOLDOWN_BASE_TIME') + coolDownCount * step).toString(),
       config.get('OTP_COOLDOWN_BASE_TIME') + coolDownCount * step
     );
 
@@ -153,8 +192,15 @@ export async function resendVerificationEmail(email: string) {
   await handleUserOtp(email);
 }
 
-export async function verifyEmail(user: Users, otp: string) {
-  if (user.isVerified) {
+export async function verifyEmail(account: Account, otp: string) {
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email: account.email,
+      },
+    });
+  if (emailOwnership?.isVerified) {
     throw new AppError(
       'Email already verified',
       StatusCode.BAD_REQUEST,
@@ -162,7 +208,7 @@ export async function verifyEmail(user: Users, otp: string) {
       true
     );
   }
-  const savedOTP = await redisProvider.get(`otp:${user.email}`);
+  const savedOTP = await redisProvider.get(`otp:${account.email}`);
   if (!savedOTP) {
     throw new AppError(
       'Please request a new OTP',
@@ -174,21 +220,21 @@ export async function verifyEmail(user: Users, otp: string) {
   if (savedOTP !== otp) {
     // count the number of times the user has entered invalid otp
     const invalidOTPCount = await redisProvider.get(
-      `invalid_otp_count:${user.email}`
+      `invalid_otp_count:${account.email}`
     );
     if (!invalidOTPCount) {
       await redisProvider.setTTL(
-        `invalid_otp_count:${user.email}`,
+        `invalid_otp_count:${account.email}`,
         '1',
         config.get('MAX_INVALID_OTP_WINDOW')
       );
     } else {
-      await redisProvider.incr(`invalid_otp_count:${user.email}`);
+      await redisProvider.incr(`invalid_otp_count:${account.email}`);
       if (
         parseInt(invalidOTPCount) + 1 >=
         config.get('MAX_INVALID_OTP_COUNT')
       ) {
-        await blockUser(user.id);
+        await blockUser(account.userId);
         throw new AppError(
           'Too many invalid OTPs, account blocked for 24 hours',
           StatusCode.BAD_REQUEST,
@@ -206,27 +252,27 @@ export async function verifyEmail(user: Users, otp: string) {
     );
   }
   try {
-    await dbProvider.getPrisma().users.update({
-      where: { id: user.id },
+    await dbProvider.getPrisma().emailOwnership.update({
+      where: { email: account.email },
       data: { isVerified: true },
     });
     await kafkaProvider.sendMessage({
       topic: 'notifications',
-      key: user.email,
+      key: account.email,
       value: JSON.stringify({
         type: 'EMAIL',
         channel: 'WELCOME_EMAIL',
-        email: user.email,
-        userName: user.email,
+        email: account.email,
+        userName: account.email,
       }),
     });
 
     // Only cleanup Redis after successful DB update
     await Promise.all([
-      redisProvider.delete(`otp:${user.email}`),
-      redisProvider.delete(`invalid_otp_count:${user.email}`),
-      redisProvider.delete(`otp_cooldown:${user.email}`),
-      redisProvider.delete(`otp_cooldown_count:${user.email}`),
+      redisProvider.delete(`otp:${account.email}`),
+      redisProvider.delete(`invalid_otp_count:${account.email}`),
+      redisProvider.delete(`otp_cooldown:${account.email}`),
+      redisProvider.delete(`otp_cooldown_count:${account.email}`),
     ]);
   } catch {
     throw new AppError(
@@ -258,53 +304,73 @@ export async function logAllOut(userId: string) {
 }
 
 export async function loginService(email: string, password: string) {
-  const user = await dbProvider.getPrisma().users.findUnique({
+  const account = await dbProvider.getPrisma().account.findFirst({
     where: {
       email,
+      type: 'PASSWORD',
     },
   });
-  if (!user || !user.password) {
+  if (!account || !account.password) {
     throw new AuthenticationError('Invalid email/ password');
   }
-  const isPasswordValid = await compareString(user.password, password);
+  const isPasswordValid = await compareString(account.password, password);
   if (!isPasswordValid) {
     throw new AuthenticationError('Invalid email/ password');
   }
-  return user;
+
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email,
+      },
+    });
+
+  return { account, isVerified: emailOwnership?.isVerified ?? false };
 }
 
 export async function refreshTokens(req: IRequest) {
   const { accessToken, refreshToken } = extractToken(req);
-  const { userId, validSession } = await validateTokens(
+  const { userId, accountId, validSession } = await validateTokens(
     tokenProvider,
     dbProvider,
     accessToken,
     refreshToken
   );
-
-  const user = await dbProvider.getPrisma().users.findUnique({
+  const account = await dbProvider.getPrisma().account.findFirst({
     where: {
-      id: userId,
+      id: accountId,
+      userId: userId,
     },
     omit: {
       password: true,
     },
   });
-  if (!user) {
+  if (!account) {
     throw new AuthenticationError('User not found please create an account');
   }
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email: account.email,
+      },
+    });
+
   await checkAccountStatus(
     redisProvider,
     {
-      id: userId,
-      isVerified: user.isVerified,
+      id: account.userId,
+      isVerified: emailOwnership?.isVerified ?? false,
+      provider: account.type,
     },
     {
       checkEmailVerification: false,
+      checkBlocked: false,
     }
   );
   const tokens = await tokenProvider.generateTokens({
-    data: { userId: userId },
+    data: { userId: userId, accountId: accountId },
     options: {},
   });
 
@@ -314,6 +380,7 @@ export async function refreshTokens(req: IRequest) {
     userId,
     req.headers['user-agent'] || '',
     req.ip || req.socket.remoteAddress || '',
+    accountId,
     validSession.id
   );
 
@@ -361,13 +428,26 @@ export async function resetPassword(password: string, token: string) {
       ) {
         // block the user
         if (result.email) {
-          const user = await dbProvider.getPrisma().users.findUnique({
+          const account = await dbProvider.getPrisma().account.findFirst({
             where: {
               email: result.email,
+              type: 'PASSWORD',
             },
           });
+          const emailOwnership = await dbProvider
+            .getPrisma()
+            .emailOwnership.findUnique({
+              where: {
+                email: result.email,
+              },
+            });
           // Throw generic error for blocked/unverified
-          if (!user || !user.password || !user.isVerified) {
+          if (
+            !account ||
+            !account.password ||
+            account.type !== 'PASSWORD' ||
+            !emailOwnership?.isVerified
+          ) {
             throw new AppError(
               'Unable to reset password. Please contact support.',
               StatusCode.BAD_REQUEST,
@@ -375,7 +455,7 @@ export async function resetPassword(password: string, token: string) {
               true
             );
           }
-          await blockUser(user.id);
+          await blockUser(account.userId);
           throw new AppError(
             'Unable to reset password. Please contact support.',
             StatusCode.BAD_REQUEST,
@@ -393,13 +473,21 @@ export async function resetPassword(password: string, token: string) {
     );
   }
 
-  const user = await dbProvider.getPrisma().users.findUnique({
+  const account = await dbProvider.getPrisma().account.findFirst({
     where: {
-      email: result.email,
+      email: result.email!,
+      type: 'PASSWORD',
     },
   });
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email: result.email!,
+      },
+    });
   // Throw generic error for blocked/unverified
-  if (!user || !user.password || !user.isVerified) {
+  if (!account || !account.password || !emailOwnership?.isVerified) {
     throw new AppError(
       'Unable to reset password. Please contact support.',
       StatusCode.BAD_REQUEST,
@@ -408,13 +496,13 @@ export async function resetPassword(password: string, token: string) {
     );
   }
 
-  const hashedPassword = await compareString(user.password, password);
+  const hashedPassword = await compareString(account.password, password);
   if (hashedPassword) {
     throw new BadRequestError('Password is the same as the old one');
   }
-  await dbProvider.getPrisma().users.update({
+  await dbProvider.getPrisma().account.update({
     where: {
-      id: user.id,
+      id: account.id,
     },
     data: {
       password: await hashString(password),
@@ -424,42 +512,51 @@ export async function resetPassword(password: string, token: string) {
   await kafkaProvider.sendMessage({
     // send email to the user
     topic: 'notifications',
-    key: user.email,
+    key: account.email,
     value: JSON.stringify({
       type: 'EMAIL',
       channel: 'PASSWORD_CHANGED',
-      email: user.email,
-      userName: user.email,
+      email: account.email,
+      userName: account.email,
     }),
   });
   const expiresAt =
     Date.now() + config.get('MAX_PASSWORD_CHANGE_WINDOW') * 1000;
   await redisProvider.setTTL(
-    `last_password_change:${user.email}`,
+    `last_password_change:${account.email}`,
     expiresAt.toString(),
     config.get('MAX_PASSWORD_CHANGE_WINDOW')
   );
   Promise.all([
     redisProvider.delete(`false_token_count:${token}`),
-    redisProvider.delete(`reset_password_cooldown:${user.email}`),
-    redisProvider.delete(`reset_password_count:${user.email}`),
+    redisProvider.delete(`reset_password_cooldown:${account.email}`),
+    redisProvider.delete(`reset_password_count:${account.email}`),
     redisProvider.delete(`reset_password_token:${result.randomId}`),
   ]);
 
-  return user.id;
+  return account.userId;
 }
 
 export async function resetPasswordRequest(email: string) {
-  const user = await dbProvider.getPrisma().users.findUnique({
+  const account = await dbProvider.getPrisma().account.findFirst({
     where: {
       email,
+      type: 'PASSWORD',
     },
   });
-  if (!user) {
+  if (!account) {
     return;
   }
-  const isBlocked = await isUserBlocked(user.id);
-  if (isBlocked || !user.isVerified || !user.password) {
+
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email,
+      },
+    });
+  const isBlocked = await isUserBlocked(account.userId);
+  if (isBlocked || !emailOwnership?.isVerified) {
     return;
   }
   const isAllowed = await checkResetPasswordRestrictions(email);
@@ -478,12 +575,12 @@ export async function resetPasswordRequest(email: string) {
   // send email to the user
   await kafkaProvider.sendMessage({
     topic: 'notifications',
-    key: user.email,
+    key: account.email,
     value: JSON.stringify({
       type: 'EMAIL',
       channel: 'PASSWORD_RESET',
-      email: user.email,
-      userName: user.email,
+      email: account.email,
+      userName: account.email,
       resetUrl: `${config.get('CLIENT_ORIGIN')}/reset-password?token=${token}`,
     }),
   });

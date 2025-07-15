@@ -23,16 +23,10 @@
       "path": "../../libraries/utils/tsconfig.lib.json"
     },
     {
-      "path": "../../libraries/logger/tsconfig.lib.json"
-    },
-    {
       "path": "../../libraries/middleware/tsconfig.lib.json"
     },
     {
       "path": "../../libraries/kafka/tsconfig.lib.json"
-    },
-    {
-      "path": "../../libraries/redis/tsconfig.lib.json"
     },
     {
       "path": "../../libraries/config-provider/tsconfig.lib.json"
@@ -41,13 +35,22 @@
       "path": "../../libraries/database/tsconfig.lib.json"
     },
     {
-      "path": "../../libraries/global-configuration/tsconfig.lib.json"
-    },
-    {
       "path": "../../libraries/auth/tsconfig.lib.json"
     },
     {
+      "path": "../../libraries/logger/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/redis/tsconfig.lib.json"
+    },
+    {
       "path": "../../libraries/error-handler/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/global-configuration/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/shared-types"
     }
   ]
 }

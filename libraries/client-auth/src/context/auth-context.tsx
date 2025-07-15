@@ -1,17 +1,24 @@
 'use client';
 
+import { AuthenticateHttpClient } from '../lib/client-auth';
 import { AuthContext } from './useAuthContext';
 
 interface AuthContextProviderProps {
   children: React.ReactNode;
-  baseUrl: string;
+  client: AuthenticateHttpClient;
 }
 
 export const AuthContextProvider = ({
   children,
-  baseUrl,
+  client,
 }: AuthContextProviderProps) => {
   return (
-    <AuthContext.Provider value={{ baseUrl }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        httpClient: client,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };

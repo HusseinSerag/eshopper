@@ -1,21 +1,25 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthContext } from '../context/useAuthContext';
+
 import { useAuthenticatedMutation } from './useAuthenticationMutation';
+import { useRouter } from 'next/navigation';
 
 export const useLogout = (logoutAll = false) => {
-  const authContext = useAuthContext();
   const queryClient = useQueryClient();
-  const url =
-    authContext.baseUrl + (logoutAll ? '/auth/logout-all' : '/auth/logout');
+  const router = useRouter();
+  const url = logoutAll ? '/auth/logout-all' : '/auth/logout';
 
   return useAuthenticatedMutation(
     {
       url,
-      method: 'POST',
+      method: 'post',
     },
     {
       onSuccess: () => {
+        router.push('/auth/sign-in');
         queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
+        queryClient.removeQueries({
+          predicate: (query) => query.queryKey[0] === 'protected',
+        });
       },
     }
   );

@@ -7,17 +7,18 @@ export function populateResponseWithTokens(
   res: ResponseAdapter<CookieOptions>
 ) {
   // hash tokens first and then set cookies
+
   res.setCookie('accessToken', accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    maxAge: 15 * 60 * 1000, // 15 minutes
-    sameSite: 'strict',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.setCookie('refreshToken', refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   res.setHeader('Authorization', `Bearer ${accessToken}`);
   res.setHeader('fallback_access_token', accessToken);

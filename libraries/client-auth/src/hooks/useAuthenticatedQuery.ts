@@ -19,11 +19,9 @@ export const useAuthenticatedQuery = <TData = unknown>(
   return useQuery({
     queryKey: ['protected', ...queryKey],
     queryFn: async (): Promise<TData> => {
-      const authClient = getAuthClient(queryClient, authContext.baseUrl);
-      return (await authClient.request({
+      return (await authContext.httpClient.request({
         url,
-        method: 'GET',
-        baseUrl: authContext.baseUrl,
+        method: 'get',
       })) as TData;
     },
     enabled: isAuthenticated && !authLoading && (options?.enabled ?? true),

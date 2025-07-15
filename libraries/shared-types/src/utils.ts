@@ -1,0 +1,63 @@
+import type { User } from './index.js';
+
+/**
+ * Get the primary email from a user's email ownership
+ */
+export function getPrimaryEmail(user: User): string | null {
+  const verifiedEmail = user.emailOwnership.find((eo) => eo.isVerified);
+  return verifiedEmail?.email || null;
+}
+
+/**
+ * Check if user has a verified email
+ */
+export function hasVerifiedEmail(user: User): boolean {
+  return user.emailOwnership.some((eo) => eo.isVerified);
+}
+
+/**
+ * Check if user has a specific account type
+ */
+export function hasAccountType(
+  user: User,
+  type: 'PASSWORD' | 'GOOGLE'
+): boolean {
+  return user.account.some((acc) => acc.type === type);
+}
+
+/**
+ * Get the primary account
+ */
+export function getPrimaryAccount(user: User) {
+  return user.account.find((acc) => acc.isPrimary) || user.account[0];
+}
+
+/**
+ * Get user with computed primary email properties
+ */
+export function getUserWithPrimaryEmail(user: User) {
+  const primaryEmail = getPrimaryEmail(user);
+  const primaryEmailVerified = hasVerifiedEmail(user);
+
+  return {
+    ...user,
+    primaryEmail: primaryEmail || '',
+    primaryEmailVerified,
+  };
+}
+
+/**
+ * Get user with computed account properties
+ */
+export function getUserWithAccounts(user: User) {
+  const hasPasswordAccount = hasAccountType(user, 'PASSWORD');
+  const hasGoogleAccount = hasAccountType(user, 'GOOGLE');
+  const primaryAccount = getPrimaryAccount(user);
+
+  return {
+    ...user,
+    hasPasswordAccount,
+    hasGoogleAccount,
+    primaryAccount,
+  };
+}

@@ -1,12 +1,14 @@
 import { DatabaseProvider } from '@eshopper/database';
 import cron, { ScheduledTask } from 'node-cron';
+import { deleteOTPState, deletePasswordState } from '../utils/deleteRedisState';
+import { redisProvider } from '../provider';
 
 // Separate the business logic from scheduling
 export const CleanupUnverifiedUsers = async (dbProvider: DatabaseProvider) => {
   const startTime = Date.now();
 
   try {
-    console.log('[CLEANUP] Starting inactive session cleanup job');
+    console.log('[CLEANUP] Starting unverified user cleanup job');
 
     // Check if database is available
     if (!dbProvider.getPrisma()) {
@@ -15,11 +17,42 @@ export const CleanupUnverifiedUsers = async (dbProvider: DatabaseProvider) => {
 
     const cutoffTime = new Date(Date.now() - 12 * 60 * 60 * 1000); // 12 hours
 
-    const result = await dbProvider.getPrisma().users.deleteMany({
+    const items = await dbProvider.getPrisma().users.findMany({
       where: {
-        isVerified: false,
+        // User must have at least one account and all must be PASSWORD type
+        account: {
+          some: {},
+          every: {
+            type: 'PASSWORD',
+          },
+        },
+        // All email ownerships must be unverified
+        emailOwnership: {
+          every: {
+            isVerified: false,
+          },
+        },
+        // User was created more than 12 hours ago
         createdAt: {
           lt: cutoffTime,
+        },
+      },
+      include: {
+        emailOwnership: true,
+      },
+    });
+
+    for (const item of items) {
+      for (const { email } of item.emailOwnership) {
+        deleteOTPState(redisProvider, email);
+        deletePasswordState(redisProvider, email);
+      }
+    }
+
+    const result = await dbProvider.getPrisma().users.deleteMany({
+      where: {
+        id: {
+          in: items.map((item) => item.id),
         },
       },
     });

@@ -80,7 +80,8 @@
   },
   "dependencies": {
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "@eshopper/shared-types": "*"
   },
   "devDependencies": {
     "@types/swagger-jsdoc": "^6.0.4",

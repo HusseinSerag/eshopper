@@ -33,7 +33,8 @@
     "src/**/*.jsx",
     "src/**/*.ts",
     "src/**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../../libraries/ui/src/lib/displayDate.ts"
   ],
   "exclude": [
     "out-tsc",
@@ -49,7 +50,16 @@
   ],
   "references": [
     {
+      "path": "../../libraries/utils"
+    },
+    {
       "path": "../../libraries/client-auth"
+    },
+    {
+      "path": "../../libraries/shared-types"
+    },
+    {
+      "path": "../../libraries/ui"
     }
   ]
 }

@@ -58,16 +58,16 @@ app.use(
         userRes.setHeader('Authorization', authHeader);
       }
       if (accessToken) {
-        userRes.setHeader('Fallback_access_token', accessToken);
+        userRes.setHeader('fallback_access_token', accessToken);
       }
       if (refreshToken) {
-        userRes.setHeader('Fallback_refresh_token', refreshToken);
+        userRes.setHeader('fallback_refresh_token', refreshToken);
       }
 
       // Ensure these are exposed to frontend
       userRes.setHeader(
         'Access-Control-Expose-Headers',
-        'Authorization, Fallback_access_token, Fallback_refresh_token'
+        'Authorization, fallback_access_token, fallback_refresh_token,Set-Cookie'
       );
 
       return proxyResData;

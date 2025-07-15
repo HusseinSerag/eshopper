@@ -1,8 +1,10 @@
 'use client';
+
 import { createContext, useContext } from 'react';
+import { AuthenticateHttpClient } from '../lib/client-auth';
 
 interface AuthContextValue {
-  baseUrl: string;
+  httpClient: AuthenticateHttpClient;
 }
 export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined

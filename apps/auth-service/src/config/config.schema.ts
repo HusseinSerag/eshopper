@@ -75,4 +75,7 @@ export const ConfigSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1)),
   NODE_ENV: z.string().default('development'),
+  GOOGLE_CLIENT_ID: z.string(),
+  GOOGLE_CLIENT_SECRET: z.string(),
+  GOOGLE_OAUTH_REDIRECT_URL: z.string(),
 });

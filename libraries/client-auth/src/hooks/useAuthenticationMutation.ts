@@ -1,5 +1,5 @@
 import { useAuthContext } from '../context/useAuthContext';
-import { getAuthClient } from '../lib/client-auth';
+
 import { useAuth } from './use-auth';
 import {
   useMutation,
@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-query';
 interface AuthenticatedMutationConfig {
   url: string;
-  method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method?: 'post' | 'put' | 'patch' | 'delete';
 }
 export const useAuthenticatedMutation = <TData = unknown, TVariables = unknown>(
   config: AuthenticatedMutationConfig,
@@ -23,13 +23,14 @@ export const useAuthenticatedMutation = <TData = unknown, TVariables = unknown>(
         throw new Error('User not authenticated');
       }
 
-      const authClient = getAuthClient(queryClient, authContext.baseUrl);
-      return authClient.request({
+      return authContext.httpClient.request({
         url: config.url,
-        method: config.method || 'POST',
+        method: config.method || 'post',
         body: JSON.stringify(variables),
         signal: options?.meta?.signal as AbortSignal, // Support cancellation
-        baseUrl: authContext.baseUrl,
+        headers: {
+          'Content-type': 'application/json',
+        },
       }) as TData;
     },
     onError: async (error) => {
@@ -44,11 +45,10 @@ export const useAuthenticatedMutation = <TData = unknown, TVariables = unknown>(
           predicate: (query) =>
             query.queryKey[0] === 'auth' && query.queryKey[1] === 'user',
         });
-        const authClient = getAuthClient(queryClient, authContext.baseUrl);
-        authClient.logoutHandler();
       }
       options?.onError?.(error, {} as TVariables, undefined);
     },
+    retry: false,
     ...options,
   });
 };

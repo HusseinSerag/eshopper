@@ -27,7 +27,7 @@ export class TokenProvider {
       data,
       options: {
         ...options,
-        expiresIn: type === 'refresh' ? '7d' : '15m',
+        expiresIn: type === 'refresh' ? '7d' : '1h',
       },
       type: this.typeToTokenType(type),
     });
@@ -40,6 +40,7 @@ export class TokenProvider {
     const accessToken = this.generateToken({
       data: {
         userId: data.userId,
+        accountId: data.accountId,
       },
       options,
       type: 'access',

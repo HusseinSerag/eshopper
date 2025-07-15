@@ -13,10 +13,7 @@ export function unblockUser(userId: string) {
 }
 
 export async function isUserBlocked(userId: string) {
-  const blockedTime = await redisProvider.get(`blocked:${userId}`);
-  if (blockedTime) {
-    const timeLeft = parseInt(blockedTime) - Date.now();
-    return timeLeft;
-  }
-  return false;
+  const blockedTime = await redisProvider.getTTLTimeLeft(`blocked:${userId}`);
+
+  return blockedTime;
 }

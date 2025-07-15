@@ -5,6 +5,11 @@ export class NetworkError extends Error {
   }
 }
 
+export class BlockedError extends Error {
+  constructor() {
+    super('User Blocked!');
+  }
+}
 export class AuthError extends Error {
   constructor(message: string) {
     super(message);

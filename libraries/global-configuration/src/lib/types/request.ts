@@ -1,5 +1,6 @@
 import type { Request } from 'express';
-import { Session, Users } from '@eshopper/database';
+import { Session, Users, Account } from '@eshopper/database';
+
 export interface IRequest<
   Params = any,
   ResBody = any,
@@ -10,4 +11,5 @@ export interface IRequest<
   userId?: string;
   user?: Users;
   session?: Session;
+  account?: Account;
 }

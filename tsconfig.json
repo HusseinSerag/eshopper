@@ -2,6 +2,12 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
+  "compilerOptions": {
+    "paths": {
+      "@libraries/ui": ["./libraries/ui/src/index.ts"],
+      "@libraries/ui/*": ["./libraries/ui/src/*"]
+    }
+  },
   "references": [
     {
       "path": "./apps/auth-service-e2e"
@@ -50,6 +56,12 @@
     },
     {
       "path": "./libraries/client-auth"
+    },
+    {
+      "path": "./libraries/ui"
+    },
+    {
+      "path": "./libraries/shared-types"
     }
   ]
 }

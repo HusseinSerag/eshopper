@@ -1,0 +1,32 @@
+import { BlockedView } from '@/modules/blocked/ui/views/blocked-view';
+import { axiosClient } from '@/utils/axios';
+import {
+  prefetchAuthenticatedQuery,
+  ProtectedServerComponent,
+} from '@eshopper/client-auth/server';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
+export default async function BlockedPage() {
+  return (
+    <ProtectedServerComponent
+      axiosClient={axiosClient}
+      redirection={{
+        onBlocked: false,
+        onInverification: true,
+      }}
+      Component={async ({ user, freshTokens }) => {
+        const queryClient = await prefetchAuthenticatedQuery(
+          axiosClient,
+          ['blocked-info'],
+          '/auth/blocked-info',
+          freshTokens
+        );
+        return (
+          <HydrationBoundary state={dehydrate(queryClient)}>
+            <BlockedView />
+          </HydrationBoundary>
+        );
+      }}
+    />
+  );
+}

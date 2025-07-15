@@ -108,4 +108,13 @@ export class Redis {
     await this.connect();
     return await this.client.incr(key);
   }
+  async getRedisObject() {
+    await this.connect();
+    return this.client;
+  }
+  async getTTLTimeLeft(key: string) {
+    await this.connect();
+    const ttl = await this.client.ttl(key);
+    return ttl;
+  }
 }

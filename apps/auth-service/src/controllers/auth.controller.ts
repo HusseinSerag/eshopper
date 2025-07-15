@@ -3,6 +3,7 @@ import {
   AppError,
   asyncErrorHandler,
   StatusCode,
+  NotFoundError,
 } from '@eshopper/error-handler';
 import { Request, Response } from 'express';
 import {
@@ -24,8 +25,9 @@ import {
   refreshTokens,
   resetPasswordRequest,
   resetPassword,
+  getVerificationInfoService,
 } from '../services/auth.service';
-import { redisProvider, tokenProvider } from '../provider';
+import { dbProvider, redisProvider, tokenProvider } from '../provider';
 import {
   populateResponseWithTokens,
   removeTokensFromResponse,
@@ -33,26 +35,43 @@ import {
 import { sendOtpFirstTime } from '../utils/otp';
 import { IRequest } from '@eshopper/global-configuration';
 import { checkAccountStatus } from '@eshopper/auth';
+import type {
+  BlockedInfoResponse,
+  MeResponse,
+  VerificationInfoResponse,
+} from '@eshopper/shared-types';
+import { isUserBlocked } from '../utils/block-user';
+
 export const LoginController = asyncErrorHandler(
   async (
     req: IRequest<unknown, unknown, z.infer<typeof LoginUserSchema>['body']>,
     res: Response
   ) => {
-    const user = await loginService(req.body.email, req.body.password);
-    await checkAccountStatus(redisProvider, user, {
+    const { account, isVerified } = await loginService(
+      req.body.email,
+      req.body.password
+    );
+
+    const accountPayload = {
+      id: account.userId,
+      provider: 'PASSWORD',
+      isVerified: isVerified,
+    } as const;
+    await checkAccountStatus(redisProvider, accountPayload, {
       checkEmailVerification: false,
     });
     const tokens = await tokenProvider.generateTokens({
-      data: { userId: user.id },
+      data: { userId: account.userId, accountId: account.id },
       options: {},
     });
 
     await saveTokensToDatabase(
       tokens.accessToken,
       tokens.refreshToken,
-      user.id,
+      account.userId,
       req.headers['user-agent'] || '',
-      req.ip || req.socket.remoteAddress || ''
+      req.ip || req.socket.remoteAddress || '',
+      account.id
     );
 
     populateResponseWithTokens(tokens.accessToken, tokens.refreshToken, {
@@ -77,11 +96,11 @@ const SignupController = asyncErrorHandler(
     res: Response
   ) => {
     const body = req.body;
-    const { email, id: userId } = await SignupService(body);
+    const { email, userId, accountId } = await SignupService(body);
 
     sendOtpFirstTime(email);
     const tokens = await tokenProvider.generateTokens({
-      data: { userId: userId },
+      data: { userId: userId, accountId: accountId },
       options: {},
     });
 
@@ -90,7 +109,8 @@ const SignupController = asyncErrorHandler(
       tokens.refreshToken,
       userId,
       req.headers['user-agent'] || '',
-      req.ip || req.socket.remoteAddress || ''
+      req.ip || req.socket.remoteAddress || '',
+      accountId
     );
 
     populateResponseWithTokens(tokens.accessToken, tokens.refreshToken, {
@@ -114,11 +134,18 @@ const SignupController = asyncErrorHandler(
 
 const ResendVerificationEmailController = asyncErrorHandler(
   async (req: IRequest, res: Response) => {
-    const user = req.user;
-    if (user?.isVerified) {
+    const account = req.account;
+    const emailOwnership = await dbProvider
+      .getPrisma()
+      .emailOwnership.findUnique({
+        where: {
+          email: account?.email || '',
+        },
+      });
+    if (emailOwnership?.isVerified || account?.type !== 'PASSWORD') {
       throw new BadRequestError('Email already verified');
     }
-    await resendVerificationEmail(user?.email || '');
+    await resendVerificationEmail(account?.email || '');
     res.json({
       message: 'OTP resent successfully',
     });
@@ -130,8 +157,8 @@ const VerifyEmailController = asyncErrorHandler(
     req: IRequest<unknown, unknown, z.infer<typeof VerifyEmailSchema>['body']>,
     res: Response
   ) => {
-    const user = req.user;
-    if (!user) {
+    const account = req.account;
+    if (!account) {
       throw new AppError(
         'User not found',
         StatusCode.NOT_FOUND,
@@ -139,7 +166,17 @@ const VerifyEmailController = asyncErrorHandler(
         true
       );
     }
-    await verifyEmail(user, req.body.otp);
+    const emailOwnership = await dbProvider
+      .getPrisma()
+      .emailOwnership.findUnique({
+        where: {
+          email: account.email,
+        },
+      });
+    if (emailOwnership?.isVerified || account.type !== 'PASSWORD') {
+      throw new BadRequestError('Email already verified');
+    }
+    await verifyEmail(account, req.body.otp);
     res.json({
       message: 'Email verified successfully',
     });
@@ -257,6 +294,101 @@ export const ResetPasswordController = asyncErrorHandler(
   }
 );
 
+const getMeController = asyncErrorHandler(
+  async (req: IRequest<unknown, unknown, unknown>, res: Response) => {
+    const id = req.user!.id;
+
+    // we must return account logged in, session and all user info
+    const userInformation = await dbProvider.getPrisma().users.findUnique({
+      where: {
+        id: id,
+      },
+      include: {
+        account: {
+          select: {
+            id: true,
+            type: true,
+            isPrimary: true,
+            email: true,
+            createdAt: true,
+          },
+        },
+        avatar: {
+          select: {
+            id: true,
+            file_id: true,
+            url: true,
+          },
+        },
+        emailOwnership: {
+          select: {
+            email: true,
+            isVerified: true,
+          },
+        },
+      },
+    });
+
+    const response: MeResponse = {
+      user: {
+        ...userInformation!,
+        createdAt: userInformation!.createdAt.toISOString(),
+        updatedAt: userInformation!.updatedAt.toISOString(),
+        avatar: userInformation!.avatar
+          ? {
+              ...userInformation!.avatar,
+              file_id: userInformation!.avatar.file_id || undefined,
+            }
+          : undefined,
+        account: userInformation!.account.map((acc) => ({
+          ...acc,
+          type: acc.type as any, // Cast to avoid enum mismatch
+          createdAt: acc.createdAt.toISOString(),
+        })),
+      },
+    };
+
+    return res.status(200).json(response);
+  }
+);
+
+export const getVerificationInfo = asyncErrorHandler(
+  async (req: IRequest, res: Response) => {
+    const user = req.user!;
+    const account = req.account!;
+    const isVerified = await dbProvider.getPrisma().emailOwnership.findUnique({
+      where: {
+        userId: user.id,
+        email: account.email,
+      },
+    });
+    if (!isVerified) {
+      throw new NotFoundError('Account not found');
+    }
+    if (isVerified.isVerified) {
+      throw new BadRequestError('Account already verified');
+    }
+    const data = (await getVerificationInfoService(
+      account.email
+    )) as VerificationInfoResponse;
+    return res.status(200).json({
+      data: data,
+    });
+  }
+);
+
+const getBlockedInfoController = asyncErrorHandler(async function (
+  req: IRequest,
+  res
+) {
+  const isBlocked = await isUserBlocked(req.user!.id);
+  const data = {
+    isBlocked,
+  } as BlockedInfoResponse;
+  return res.status(200).json({
+    data: data,
+  });
+});
 export {
   SignupController,
   ResendVerificationEmailController,
@@ -265,4 +397,6 @@ export {
   LogAllOutController,
   RefreshTokensController,
   ResetPasswordRequestController,
+  getMeController,
+  getBlockedInfoController,
 };

@@ -76,6 +76,7 @@ export enum StatusCode {
   REFRESH_TOKEN_NOT_FOUND = 4013,
   REFRESH_TOKEN_BLACKLISTED = 4015,
   REFRESH_TOKEN_NOT_MATCH = 4016,
+  USER_BLOCKED = 5000,
 }
 
 export class AppError extends Error {
@@ -204,6 +205,21 @@ export class TimeoutError extends AppError {
   }
 }
 
+export class InternalServerError extends AppError {
+  constructor(
+    message = 'Internal server error',
+    details?: Record<string, any>
+  ) {
+    super(
+      message,
+      StatusCode.INTERNAL_SERVER_ERROR,
+      StatusCode.INTERNAL_SERVER_ERROR,
+      true,
+      details
+    );
+  }
+}
+
 export class RefreshTokenError extends AppError {
   constructor(
     message = 'Refresh token error',
@@ -224,6 +240,17 @@ export class RefreshTokenExpiredError extends RefreshTokenError {
       details,
       StatusCode.UNAUTHORIZED,
       StatusCode.REFRESH_TOKEN_EXPIRED
+    );
+  }
+}
+
+export class UserBlocked extends AppError {
+  constructor() {
+    super(
+      'You are blocked!',
+      StatusCode.UNAUTHORIZED,
+      StatusCode.USER_BLOCKED,
+      true
     );
   }
 }

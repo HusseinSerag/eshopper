@@ -1,5 +1,5 @@
 import { tokenProvider, dbProvider, redisProvider } from '../provider';
-import express, { Express, Response } from 'express';
+import express, { Express } from 'express';
 import {
   ResendVerificationEmailController,
   SignupController,
@@ -10,6 +10,9 @@ import {
   RefreshTokensController,
   ResetPasswordRequestController,
   ResetPasswordController,
+  getMeController,
+  getVerificationInfo,
+  getBlockedInfoController,
 } from '../controllers/auth.controller';
 import { validationMiddleware } from '@eshopper/middleware';
 import {
@@ -23,11 +26,12 @@ import {
   authRequiredMiddleware,
   checkAccountStatusMiddleware,
 } from '@eshopper/auth';
-import { IRequest } from '@eshopper/global-configuration';
+
 import swaggerSpec from './swagger';
 import swaggerUi from 'swagger-ui-express';
 import { config } from '../provider';
 import { logger } from '@eshopper/logger';
+import { createAuthProviderRoutes } from './auth-provider.router';
 
 export function createRoutes(app: Express) {
   app.use(express.json({ limit: '100mb' }));
@@ -44,7 +48,7 @@ export function createRoutes(app: Express) {
   app.post(
     '/logout',
     authRequiredMiddleware(tokenProvider, dbProvider),
-    checkAccountStatusMiddleware(redisProvider, {
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
       checkEmailVerification: false,
     }),
     LogoutController
@@ -53,7 +57,7 @@ export function createRoutes(app: Express) {
   app.post(
     '/logout-all',
     authRequiredMiddleware(tokenProvider, dbProvider),
-    checkAccountStatusMiddleware(redisProvider, {
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
       checkEmailVerification: false,
     }),
     LogAllOutController
@@ -76,7 +80,7 @@ export function createRoutes(app: Express) {
   app.post(
     '/verify-email',
     authRequiredMiddleware(tokenProvider, dbProvider),
-    checkAccountStatusMiddleware(redisProvider, {
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
       checkEmailVerification: false,
     }),
     validationMiddleware(VerifyEmailSchema),
@@ -86,30 +90,45 @@ export function createRoutes(app: Express) {
   app.post(
     '/resend-verification-email',
     authRequiredMiddleware(tokenProvider, dbProvider),
-    checkAccountStatusMiddleware(redisProvider, {
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
       checkEmailVerification: false,
     }),
     ResendVerificationEmailController
   );
 
   app.get(
-    '/me',
+    '/blocked-info',
     authRequiredMiddleware(tokenProvider, dbProvider),
-    checkAccountStatusMiddleware(redisProvider, {
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
       checkEmailVerification: false,
       checkBlocked: false,
     }),
-    async (req: IRequest, res: Response) => {
-      const otpCooldown = await redisProvider.get(
-        `otp_cooldown:${req.user?.email}`
-      );
-      res.json({
-        user: {
-          ...req.user,
-          otpCooldown,
-        },
-      });
-    }
+    getBlockedInfoController
+  );
+
+  app.get(
+    '/me',
+    authRequiredMiddleware(tokenProvider, dbProvider),
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
+      checkEmailVerification: false,
+      checkBlocked: true,
+    }),
+    getMeController
+  );
+
+  app.get(
+    '/verification-info',
+    authRequiredMiddleware(tokenProvider, dbProvider),
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
+      checkEmailVerification: false,
+      checkBlocked: true,
+    }),
+    getVerificationInfo
+  );
+
+  app.use(
+    '/oauth',
+    createAuthProviderRoutes(tokenProvider, dbProvider, redisProvider)
   );
 
   if (config.get('NODE_ENV') === 'development') {

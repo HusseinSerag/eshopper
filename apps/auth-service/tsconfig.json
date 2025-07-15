@@ -7,16 +7,10 @@
       "path": "../../libraries/utils"
     },
     {
-      "path": "../../libraries/logger"
-    },
-    {
       "path": "../../libraries/middleware"
     },
     {
       "path": "../../libraries/kafka"
-    },
-    {
-      "path": "../../libraries/redis"
     },
     {
       "path": "../../libraries/config-provider"
@@ -25,13 +19,22 @@
       "path": "../../libraries/database"
     },
     {
-      "path": "../../libraries/global-configuration"
-    },
-    {
       "path": "../../libraries/auth"
     },
     {
+      "path": "../../libraries/logger"
+    },
+    {
+      "path": "../../libraries/redis"
+    },
+    {
       "path": "../../libraries/error-handler"
+    },
+    {
+      "path": "../../libraries/global-configuration"
+    },
+    {
+      "path": "../../libraries/shared-types"
     },
     {
       "path": "./tsconfig.app.json"
