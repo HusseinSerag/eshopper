@@ -1,10 +1,7 @@
 import { VerifyEmailView } from '@/modules/verify/ui/views/verify-email-view';
 import { axiosClient } from '@/utils/axios';
-import {
-  getAuth,
-  prefetchAuthenticatedQuery,
-  ProtectedServerComponent,
-} from '@eshopper/client-auth/server';
+import { prefetchAuthenticatedQuery } from '@eshopper/client-auth/server';
+import { ProtectedServerComponent } from '@/utils/protectedComponent';
 import { hasVerifiedEmail } from '@eshopper/shared-types';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 

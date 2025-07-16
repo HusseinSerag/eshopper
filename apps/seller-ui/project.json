@@ -1,7 +1,7 @@
 {
-  "name": "user-ui",
+  "name": "seller-ui",
   "$schema": "../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "user-ui",
+  "sourceRoot": "seller-ui",
   "projectType": "application",
   "targets": {
     "build": {
@@ -9,11 +9,11 @@
       "outputs": ["{options.outputPath}"],
       "defaultConfiguration": "production",
       "options": {
-        "outputPath": "dist/user-ui"
+        "outputPath": "dist/seller-ui"
       },
       "configurations": {
         "development": {
-          "outputPath": "user-ui"
+          "outputPath": "seller-ui"
         },
         "production": {}
       }
@@ -22,17 +22,17 @@
       "executor": "@nx/next:server",
       "defaultConfiguration": "development",
       "options": {
-        "buildTarget": "user-ui:build",
+        "buildTarget": "seller-ui:build",
         "dev": true,
-        "port": 4200
+        "port": 4201
       },
       "configurations": {
         "development": {
-          "buildTarget": "user-ui:build:development",
+          "buildTarget": "seller-ui:build:development",
           "dev": true
         },
         "production": {
-          "buildTarget": "user-ui:build:production",
+          "buildTarget": "seller-ui:build:production",
           "dev": false
         }
       }
@@ -40,14 +40,14 @@
     "export": {
       "executor": "@nx/next:export",
       "options": {
-        "buildTarget": "user-ui:build:production"
+        "buildTarget": "seller-ui:build:production"
       }
     },
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "user-ui/jest.config.ts"
+        "jestConfig": "seller-ui/jest.config.ts"
       }
     },
     "lint": {

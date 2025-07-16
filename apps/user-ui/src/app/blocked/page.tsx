@@ -1,9 +1,7 @@
 import { BlockedView } from '@/modules/blocked/ui/views/blocked-view';
 import { axiosClient } from '@/utils/axios';
-import {
-  prefetchAuthenticatedQuery,
-  ProtectedServerComponent,
-} from '@eshopper/client-auth/server';
+import { prefetchAuthenticatedQuery } from '@eshopper/client-auth/server';
+import { ProtectedServerComponent } from '@/utils/protectedComponent';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 
 export default async function BlockedPage() {

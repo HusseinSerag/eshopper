@@ -1,7 +1,7 @@
 //import { getAuth } from '@eshopper/client-auth/server';
 import { Button } from '@eshopper/ui';
 
-import { ProtectedServerComponent } from '@eshopper/client-auth/server';
+import { ProtectedServerComponent } from '@/utils/protectedComponent';
 import { axiosClient } from '@/utils/axios';
 import { Test } from '@/components/test';
 

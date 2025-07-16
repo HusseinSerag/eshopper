@@ -42,5 +42,6 @@ export const useLogin = () => {
 
       await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
     },
+    retry: false,
   });
 };

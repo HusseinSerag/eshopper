@@ -2,7 +2,6 @@ import { ResetPasswordView } from '@/modules/reset-password/ui/views/reset-passw
 import { axiosClient } from '@/utils/axios';
 import { getAuthClient, RequestError } from '@eshopper/client-auth';
 import { ErrorComponent } from '@eshopper/ui';
-import { AxiosError } from 'axios';
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;

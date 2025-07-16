@@ -201,6 +201,13 @@ export async function verifyEmail(account: Account, otp: string) {
       where: {
         email: account.email,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
   if (emailOwnership?.isVerified) {
     throw new AppError(
@@ -265,7 +272,7 @@ export async function verifyEmail(account: Account, otp: string) {
         type: 'EMAIL',
         channel: 'WELCOME_EMAIL',
         email: account.email,
-        userName: account.email,
+        userName: emailOwnership?.user.name,
       }),
     });
 
@@ -679,6 +686,7 @@ export async function resetPasswordRequest(email: string, origin: OriginSite) {
       user: {
         select: {
           role: true,
+          name: true,
         },
       },
     },
@@ -715,6 +723,10 @@ export async function resetPasswordRequest(email: string, origin: OriginSite) {
   // generate reset token
   const token = await generateAndStoreResetPasswordToken(email);
 
+  const link =
+    account.user.role === 'shopper'
+      ? config.get('CLIENT_ORIGIN')
+      : config.get('SELLER_ORIGIN');
   // send email to the user
   await kafkaProvider.sendMessage({
     topic: 'notifications',
@@ -723,8 +735,8 @@ export async function resetPasswordRequest(email: string, origin: OriginSite) {
       type: 'EMAIL',
       channel: 'PASSWORD_RESET',
       email: account.email,
-      userName: account.email,
-      resetUrl: `${config.get('CLIENT_ORIGIN')}/reset-password?token=${token}`,
+      userName: account.user.name,
+      resetUrl: `${link}/reset-password?token=${token}`,
     }),
   });
 }

@@ -12,8 +12,18 @@ type Redirection = {
   onInverification: boolean;
   onBlocked: boolean;
 };
+interface RedirectUrls {
+  signIn: string;
+  blocked: string;
+  verify: string;
+}
 
-interface Props {
+export interface FactoryConfig {
+  redirectUrls: RedirectUrls;
+  defaultRedirection?: Redirection;
+}
+
+export interface ProtectedServerComponentHOCProps {
   Component: React.ComponentType<{ user?: User; [key: string]: any }>;
   handleUnauthenticated?: () => void;
   axiosClient: AxiosClient;
@@ -45,74 +55,85 @@ function createCookies(accessToken: string, refreshToken: string) {
     options,
   };
 }
-export async function ProtectedServerComponent({
-  Component,
-  axiosClient,
-  handleUnauthenticated = () => redirect('/auth/sign-in'),
-  redirection = {
-    onBlocked: true,
-    onInverification: true,
-  },
-  ...rest
-}: Props) {
-  const data = await getAuth(axiosClient);
 
-  if (data.success === false) {
-    handleUnauthenticated();
-    return null;
-  }
-  if (data.success === true && !data.user && data.isBlocked) {
-    if (redirection.onBlocked) {
-      // go to blocked page
-      if (data.refreshed) {
-        const { cookies } = createCookies(data.accessToken, data.refreshToken);
-        return (
-          <ClientWrapper cookies={cookies}>
-            <RedirectionComponent link="/blocked" />
-          </ClientWrapper>
-        );
-      }
-      redirect('/blocked');
+export function createProtectedComponent(config: FactoryConfig) {
+  const {
+    redirectUrls,
+    defaultRedirection = { onBlocked: true, onInverification: true },
+  } = config;
+
+  return async function ProtectedServerComponent({
+    Component,
+    axiosClient,
+    handleUnauthenticated = () => redirect(redirectUrls.signIn),
+    redirection = defaultRedirection,
+    ...rest
+  }: ProtectedServerComponentHOCProps) {
+    const data = await getAuth(axiosClient);
+
+    if (data.success === false) {
+      handleUnauthenticated();
       return null;
-    } else {
-      if (data.refreshed) {
-        const { cookies } = createCookies(data.accessToken, data.refreshToken);
+    }
+    if (data.success === true && !data.user && data.isBlocked) {
+      if (redirection.onBlocked) {
+        // go to blocked page
+        if (data.refreshed) {
+          const { cookies } = createCookies(
+            data.accessToken,
+            data.refreshToken
+          );
+          return (
+            <ClientWrapper cookies={cookies}>
+              <RedirectionComponent link={redirectUrls.blocked} />
+            </ClientWrapper>
+          );
+        }
+        redirect(redirectUrls.blocked);
+        return null;
+      } else {
+        if (data.refreshed) {
+          const { cookies } = createCookies(
+            data.accessToken,
+            data.refreshToken
+          );
+          return (
+            <ClientWrapper cookies={cookies}>
+              <Component {...rest} />
+            </ClientWrapper>
+          );
+        }
+        return <Component {...rest} />;
+      }
+    }
+    if (data.success && data.refreshed === true) {
+      const { cookies } = createCookies(data.accessToken, data.refreshToken);
+      if (redirection.onInverification && !hasVerifiedEmail(data.user)) {
         return (
           <ClientWrapper cookies={cookies}>
-            <Component {...rest} />
+            <RedirectionComponent link={redirectUrls.verify} />
           </ClientWrapper>
         );
       }
-      return <Component {...rest} />;
-    }
-  }
-  if (data.success && data.refreshed === true) {
-    const { cookies } = createCookies(data.accessToken, data.refreshToken);
-    if (redirection.onInverification && !hasVerifiedEmail(data.user)) {
       return (
         <ClientWrapper cookies={cookies}>
-          <RedirectionComponent link="/auth/verify" />
+          <Component
+            freshTokens={{
+              accessToken: data.accessToken,
+              refreshToken: data.refreshToken,
+            }}
+            user={data.user}
+            {...rest}
+          />
+          ;
         </ClientWrapper>
       );
     }
-    return (
-      <ClientWrapper cookies={cookies}>
-        <Component
-          freshTokens={{
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken,
-          }}
-          user={data.user}
-          {...rest}
-        />
-        ;
-      </ClientWrapper>
-    );
-  }
-  if (redirection.onInverification && !hasVerifiedEmail(data.user)) {
-    redirect('/auth/verify');
+    if (redirection.onInverification && !hasVerifiedEmail(data.user)) {
+      redirect(redirectUrls.verify);
+      return null;
+    }
+    if (data.user) return <Component user={data.user} {...rest} />;
     return null;
-  }
-  if (data.user) return <Component user={data.user} {...rest} />;
-  return null;
+  };
 }
