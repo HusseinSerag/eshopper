@@ -2,7 +2,7 @@ import type { Response, Request } from 'express';
 import { nanoid } from 'nanoid';
 import { config, dbProvider, redisProvider } from '../provider';
 import type { IRequest } from '@eshopper/global-configuration';
-import { asyncErrorHandler } from '@eshopper/error-handler';
+import { asyncErrorHandler, BadRequestError } from '@eshopper/error-handler';
 import { Redis } from '@eshopper/redis';
 import { logger } from '@eshopper/logger';
 import { InternalServerError } from '@eshopper/error-handler';
@@ -10,7 +10,11 @@ import { tokenProvider } from '../provider';
 import { saveTokensToDatabase } from '../services/auth.service';
 import { populateResponseWithTokens } from '@eshopper/auth';
 
-import type { OAuthModes, OAuthState } from '@eshopper/shared-types';
+import type {
+  OAuthModes,
+  OAuthState,
+  OriginSite,
+} from '@eshopper/shared-types';
 
 // Store OAuth state in Redis
 async function storeOAuthState(
@@ -94,22 +98,29 @@ export const GoogleOAuthController = (redis: Redis) => {
       const mode = (req.query.mode as OAuthModes) || 'login';
       // Enforce correct usage
       if (mode === 'link' && !isAuthenticated) {
-        return res
-          .status(400)
-          .json({ error: 'Must be signed in to link account.' });
+        throw new BadRequestError('Must be signed in to link account.');
       }
+
+      const whichSite = req.headers['x-origin-site'] as OriginSite;
       // if ((mode === 'login' || mode === 'signup') && isAuthenticated) {
       //   return res.status(400).json({ error: 'Already signed in.' });
       // }
+      if (whichSite === 'admin') {
+        throw new BadRequestError('cannot create this type of role');
+      }
       const expiry = 10 * 60; // 10 mins
       const reqUrl =
-        req.query.returnTo || req.get('Referer') || config.get('CLIENT_ORIGIN');
+        whichSite === 'shopper'
+          ? config.get('CLIENT_ORIGIN')
+          : config.get('SELLER_ORIGIN');
+
       const stateData = {
         action: mode, // 'link', 'login', or 'signup'
         nonce: nanoid(),
         userId: isAuthenticated ? req.user!.id : undefined,
         timestamp: Date.now(),
         url: reqUrl,
+        origin: whichSite,
       } as const;
       await storeOAuthState({ ...stateData, expiry }, redis);
       const googleAuthUrl = getGoogleAuthUrl({ state: stateData.nonce });
@@ -285,9 +296,9 @@ export const GoogleOAuthCallbackController = async (
         where: { email: googleUser.email },
       });
     let userId: string;
-
+    const mode = stateData.action as OAuthModes;
     // --- LINKING ---
-    if (stateData.action === 'link') {
+    if (mode === 'link') {
       // Linking: must be same user
       if (emailOwnership && emailOwnership.userId !== stateData.userId) {
         logger.warn('Email already owned by different user during linking:', {
@@ -352,8 +363,6 @@ export const GoogleOAuthCallbackController = async (
     }
 
     // --- STRICT LOGIN/SIGNUP ENFORCEMENT ---
-    // mode should be 'login' or 'signup' (from state data)
-    const mode = stateData.action as OAuthModes;
 
     // Check if user already has a Google account for this email
     const existingGoogleAccount = await dbProvider
@@ -362,6 +371,13 @@ export const GoogleOAuthCallbackController = async (
         where: {
           email: googleUser.email,
           type: 'GOOGLE',
+        },
+        include: {
+          user: {
+            select: {
+              role: true,
+            },
+          },
         },
       });
 
@@ -377,12 +393,18 @@ export const GoogleOAuthCallbackController = async (
         );
       }
       // Create new user and EmailOwnership
+      const origin = stateData.origin as OriginSite;
+      if (origin === 'admin')
+        return res.redirect(
+          `${redirectToClientLink}/auth/sign-up?error=wrong-origin`
+        );
       const newUser = await dbProvider.getPrisma().users.create({
         data: {
           emailOwnership: {
             create: [{ email: googleUser.email, isVerified: true }],
           },
           name: googleUser.name || googleUser.email,
+          role: origin,
         },
       });
       userId = newUser.id;
@@ -403,7 +425,22 @@ export const GoogleOAuthCallbackController = async (
 
       // For login, we need to check if this is the right authentication method
       if (existingGoogleAccount) {
+        const origin = stateData.origin as OriginSite;
+        if (origin === 'admin')
+          return res.redirect(
+            `${redirectToClientLink}/auth/sign-in?error=wrong-origin`
+          );
+        if (
+          origin === 'seller' &&
+          existingGoogleAccount.user.role === 'shopper'
+        ) {
+          res.redirect(
+            `${redirectToClientLink}/auth/sign-in?error=invalid-role`
+          );
+        }
+
         // User has Google account, allow login
+
         userId = existingGoogleAccount.userId;
       } else {
         // User exists but doesn't have Google account - they should use their original auth method
@@ -476,20 +513,29 @@ export const GoogleOAuthCallbackController = async (
       req.ip || req.socket.remoteAddress || '',
       account.id
     );
-    populateResponseWithTokens(tokenPair.accessToken, tokenPair.refreshToken, {
-      clearCookie(cookie) {
-        res.clearCookie(cookie);
+    const origin = stateData.origin;
+    populateResponseWithTokens(
+      {
+        name: 'accessToken',
+        value: tokenPair.accessToken,
       },
-      setCookie(cookie, value) {
-        res.cookie(cookie, value);
+      {
+        name: 'refreshToken',
+        value: tokenPair.refreshToken,
       },
-      setHeader(header, value) {
-        res.setHeader(header, value);
-      },
-      clearHeader(header) {
-        res.removeHeader(header);
-      },
-    });
+      {
+        setCookie: (name, value, options) => {
+          res.cookie(name, value, options);
+        },
+        clearCookie: (name) => {
+          res.clearCookie(name);
+        },
+        setHeader: (name, value) => {
+          res.setHeader(name, value);
+        },
+        domain: origin,
+      }
+    );
 
     // Redirect based on mode
     logger.info('OAuth flow completed successfully:', {

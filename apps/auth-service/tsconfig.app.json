@@ -7,7 +7,7 @@
     "tsBuildInfoFile": "dist/tsconfig.app.tsbuildinfo",
     "sourceMap": true
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../user-ui/src/utils/displayDate.ts"],
   "exclude": [
     "out-tsc",
     "dist",

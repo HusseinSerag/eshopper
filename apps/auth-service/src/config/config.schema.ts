@@ -62,6 +62,7 @@ export const ConfigSchema = z.object({
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().min(1)),
   CLIENT_ORIGIN: z.string(),
+  SELLER_ORIGIN: z.string(),
   MAX_FALSE_TOKEN_COUNT_WINDOW: z
     .string()
     .transform((val) => parseInt(val, 10))

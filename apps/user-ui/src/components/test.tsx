@@ -11,7 +11,7 @@ export function Test() {
   } else {
     return (
       <>
-        <div>{isAuthenticated ? user?.name : 'not authenticated'}</div>
+        <div>{isAuthenticated ? user?.user?.name : 'not authenticated'}</div>
         <Button
           onClick={() => {
             mutate({});

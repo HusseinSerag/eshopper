@@ -21,6 +21,7 @@ interface Props {
   [key: string]: any; // to allow arbitrary props
 }
 function createCookies(accessToken: string, refreshToken: string) {
+  // const origin = process.env.NEXT_PUBLIC_ORIGIN_URL!;
   const options: Partial<CookieOptions> = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

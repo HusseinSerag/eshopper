@@ -7,6 +7,9 @@
       "path": "../database"
     },
     {
+      "path": "../error-handler"
+    },
+    {
       "path": "./tsconfig.lib.json"
     }
   ]

@@ -3,4 +3,5 @@ export interface ResponseAdapter<T> {
   clearCookie(name: string): void;
   setHeader(name: string, value: string): void;
   clearHeader?(name: string): void;
+  domain: string;
 }

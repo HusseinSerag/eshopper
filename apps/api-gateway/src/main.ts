@@ -20,8 +20,6 @@ const port = config.get('PORT');
 
 const app = express();
 
-setupApp(app);
-
 app.use(
   cors({
     origin: config.get('CLIENT_ORIGIN'),
@@ -32,10 +30,11 @@ app.use(
       'Authorization',
       'fallback_access_token',
       'fallback_refresh_token',
+      'X-Origin-Site',
     ],
   })
 );
-
+setupApp(app);
 app.get('/', (req, res) => {
   res.send({ message: 'API Gateway' });
 });

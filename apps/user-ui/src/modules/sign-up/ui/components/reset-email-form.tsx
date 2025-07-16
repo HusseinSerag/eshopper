@@ -20,6 +20,8 @@ import { ResetPasswordSchema } from '../../schemas/reset-password.schema';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
+import { useSendPasswordRequest } from '../../hooks/useSendPasswordRequest';
+import { toast } from 'sonner';
 export function ResetPasswordForm() {
   const form = useForm<z.infer<typeof ResetPasswordSchema>>({
     resolver: zodResolver(ResetPasswordSchema),
@@ -27,20 +29,21 @@ export function ResetPasswordForm() {
       email: '',
     },
   });
+  const sendPassword = useSendPasswordRequest();
 
-  const disabled = false;
-  const router = useRouter();
+  const disabled = sendPassword.isPending;
+
   function onSubmit(values: z.infer<typeof ResetPasswordSchema>) {
-    console.log(values);
     if (disabled) return;
-    // loginMutation.mutate(values, {
-    //   onError(error) {
-    //     toast.error(error.message);
-    //   },
-    //   onSuccess() {
-    //     router.push('/');
-    //   },
-    // });
+
+    sendPassword.mutate(values.email, {
+      onError(error) {
+        toast.error(error.message);
+      },
+      onSuccess(data) {
+        toast.success(data.message);
+      },
+    });
   }
   return (
     <DialogContent className="sm:max-w-lg rounded-lg max-w-[95%]">

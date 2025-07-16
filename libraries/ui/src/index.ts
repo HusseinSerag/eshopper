@@ -9,3 +9,5 @@ export * from './components/ui/alert';
 export * from './components/ui/sonner';
 export * from './hooks/useCountdown';
 export * from './components/ui/dialog';
+export * from './components/ui/ErrorComponent';
+export * from './components/ui/checkbox';

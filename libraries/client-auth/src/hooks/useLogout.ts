@@ -16,10 +16,14 @@ export const useLogout = (logoutAll = false) => {
     {
       onSuccess: () => {
         router.push('/auth/sign-in');
-        queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
         queryClient.removeQueries({
           predicate: (query) => query.queryKey[0] === 'protected',
         });
+        queryClient.removeQueries({
+          queryKey: ['auth', 'user'],
+        });
+
+        // await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
       },
     }
   );

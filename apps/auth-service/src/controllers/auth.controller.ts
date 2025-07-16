@@ -4,6 +4,8 @@ import {
   asyncErrorHandler,
   StatusCode,
   NotFoundError,
+  RateLimitError,
+  AuthorizationError,
 } from '@eshopper/error-handler';
 import { Request, Response } from 'express';
 import {
@@ -26,6 +28,7 @@ import {
   resetPasswordRequest,
   resetPassword,
   getVerificationInfoService,
+  verifyResetPasswordService,
 } from '../services/auth.service';
 import { dbProvider, redisProvider, tokenProvider } from '../provider';
 import {
@@ -38,6 +41,7 @@ import { checkAccountStatus } from '@eshopper/auth';
 import type {
   BlockedInfoResponse,
   MeResponse,
+  OriginSite,
   VerificationInfoResponse,
 } from '@eshopper/shared-types';
 import { isUserBlocked } from '../utils/block-user';
@@ -47,7 +51,7 @@ export const LoginController = asyncErrorHandler(
     req: IRequest<unknown, unknown, z.infer<typeof LoginUserSchema>['body']>,
     res: Response
   ) => {
-    const { account, isVerified } = await loginService(
+    const { account, isVerified, role } = await loginService(
       req.body.email,
       req.body.password
     );
@@ -57,6 +61,12 @@ export const LoginController = asyncErrorHandler(
       provider: 'PASSWORD',
       isVerified: isVerified,
     } as const;
+
+    const origin = req.headers['x-origin-site'] as OriginSite;
+    if (role === 'shopper' && origin === 'seller') {
+      throw new AuthorizationError('Invalid login credentials');
+    }
+
     await checkAccountStatus(redisProvider, accountPayload, {
       checkEmailVerification: false,
     });
@@ -74,17 +84,29 @@ export const LoginController = asyncErrorHandler(
       account.id
     );
 
-    populateResponseWithTokens(tokens.accessToken, tokens.refreshToken, {
-      setCookie: (name, value, options) => {
-        res.cookie(name, value, options);
+    populateResponseWithTokens(
+      {
+        name: 'accessToken',
+        value: tokens.accessToken,
       },
-      clearCookie: (name) => {
-        res.clearCookie(name);
+      {
+        name: 'refreshToken',
+        value: tokens.refreshToken,
       },
-      setHeader: (name, value) => {
-        res.setHeader(name, value);
-      },
-    });
+      {
+        setCookie: (name, value, options) => {
+          res.cookie(name, value, options);
+        },
+        clearCookie: (name) => {
+          res.clearCookie(name);
+        },
+        setHeader: (name, value) => {
+          res.setHeader(name, value);
+        },
+        domain: origin,
+      }
+    );
+
     res.json({
       message: 'Logged in successfully',
     });
@@ -113,17 +135,29 @@ const SignupController = asyncErrorHandler(
       accountId
     );
 
-    populateResponseWithTokens(tokens.accessToken, tokens.refreshToken, {
-      setCookie: (name, value, options) => {
-        res.cookie(name, value, options);
+    const origin = req.headers['x-origin-site'] as string;
+    populateResponseWithTokens(
+      {
+        name: 'accessToken',
+        value: tokens.accessToken,
       },
-      clearCookie: (name) => {
-        res.clearCookie(name);
+      {
+        name: 'refreshToken',
+        value: tokens.refreshToken,
       },
-      setHeader: (name, value) => {
-        res.setHeader(name, value);
-      },
-    });
+      {
+        setCookie: (name, value, options) => {
+          res.cookie(name, value, options);
+        },
+        clearCookie: (name) => {
+          res.clearCookie(name);
+        },
+        setHeader: (name, value) => {
+          res.setHeader(name, value);
+        },
+        domain: origin,
+      }
+    );
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -186,7 +220,9 @@ const VerifyEmailController = asyncErrorHandler(
 const LogoutController = asyncErrorHandler(
   async (req: IRequest, res: Response) => {
     await logout(req.user?.id || '', req.session?.id || '');
-    removeTokensFromResponse({
+    const origin = req.headers['x-origin-site'] as string;
+
+    removeTokensFromResponse(['accessToken', 'refreshToken'], {
       setCookie: (name, value, options) => {
         res.cookie(name, value, options);
       },
@@ -199,6 +235,7 @@ const LogoutController = asyncErrorHandler(
       setHeader: (name, value) => {
         res.setHeader(name, value);
       },
+      domain: origin,
     });
     res.json({
       message: 'Logged out successfully',
@@ -209,7 +246,9 @@ const LogoutController = asyncErrorHandler(
 const LogAllOutController = asyncErrorHandler(
   async (req: IRequest, res: Response) => {
     await logAllOut(req.user?.id || '');
-    removeTokensFromResponse({
+    const origin = req.headers['x-origin-site'] as string;
+
+    removeTokensFromResponse(['accessToken', 'refreshToken'], {
       setCookie: (name, value, options) => {
         res.cookie(name, value, options);
       },
@@ -222,6 +261,7 @@ const LogAllOutController = asyncErrorHandler(
       setHeader: (name, value) => {
         res.setHeader(name, value);
       },
+      domain: origin,
     });
     res.json({
       message: 'Logged out from all devices successfully',
@@ -232,17 +272,30 @@ const LogAllOutController = asyncErrorHandler(
 const RefreshTokensController = asyncErrorHandler(
   async (req: IRequest, res: Response) => {
     const tokens = await refreshTokens(req);
-    populateResponseWithTokens(tokens.accessToken, tokens.refreshToken, {
-      setCookie: (name, value, options) => {
-        res.cookie(name, value, options);
+    const origin = req.headers['x-origin-site'] as string;
+    populateResponseWithTokens(
+      {
+        name: 'accessToken',
+        value: tokens.accessToken,
       },
-      clearCookie: (name) => {
-        res.clearCookie(name);
+      {
+        name: 'refreshToken',
+        value: tokens.refreshToken,
       },
-      setHeader: (name, value) => {
-        res.setHeader(name, value);
-      },
-    });
+      {
+        setCookie: (name, value, options) => {
+          res.cookie(name, value, options);
+        },
+        clearCookie: (name) => {
+          res.clearCookie(name);
+        },
+        setHeader: (name, value) => {
+          res.setHeader(name, value);
+        },
+        domain: origin,
+      }
+    );
+
     res.status(200).json({
       message: 'Tokens refreshed successfully',
     });
@@ -258,7 +311,8 @@ const ResetPasswordRequestController = asyncErrorHandler(
     >,
     res: Response
   ) => {
-    await resetPasswordRequest(req.body.email);
+    const origin = req.headers['x-origin-site'] as OriginSite;
+    await resetPasswordRequest(req.body.email, origin);
     res.status(200).json({
       message:
         'Reset password instructions will be sent to this email shortly if it exists',
@@ -283,7 +337,8 @@ export const ResetPasswordController = asyncErrorHandler(
         true
       );
     }
-    const userId = await resetPassword(req.body.password, token);
+    const origin = req.headers['x-origin-site'] as OriginSite;
+    const userId = await resetPassword(req.body.password, token, origin);
     // see if log out all devices is true
     if (req.body.logOutAllDevices) {
       await logAllOut(userId);
@@ -389,6 +444,51 @@ const getBlockedInfoController = asyncErrorHandler(async function (
     data: data,
   });
 });
+
+const VerifyResetPasswordTokenController = asyncErrorHandler(async function (
+  req: Request,
+  res: Response
+) {
+  const token = Array.isArray(req.query.token)
+    ? req.query.token[0]
+    : req.query.token;
+
+  if (typeof token !== 'string') {
+    throw new AppError(
+      'Token is required',
+      StatusCode.BAD_REQUEST,
+      StatusCode.BAD_REQUEST,
+      true
+    );
+  }
+  const origin = req.headers['x-origin-site'] as OriginSite;
+  const { rateLimited, valid, email, retryAfter } =
+    await verifyResetPasswordService(token, origin);
+
+  if (!valid) {
+    if (rateLimited) {
+      // Create a custom rate limit error that includes retryAfter
+      const error = new RateLimitError(
+        'Too many failed attempts. Please try again later. ' + retryAfter
+      );
+
+      throw error;
+    }
+
+    throw new AppError(
+      'Invalid or expired token',
+      StatusCode.BAD_REQUEST,
+      StatusCode.BAD_REQUEST,
+      true
+    );
+  }
+
+  return res.status(200).json({
+    success: true,
+    message: 'Token is valid',
+    email: email,
+  });
+});
 export {
   SignupController,
   ResendVerificationEmailController,
@@ -399,4 +499,5 @@ export {
   ResetPasswordRequestController,
   getMeController,
   getBlockedInfoController,
+  VerifyResetPasswordTokenController,
 };

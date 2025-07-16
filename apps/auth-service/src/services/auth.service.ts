@@ -27,11 +27,12 @@ import {
   generateAndStoreResetPasswordToken,
   verifyResetPasswordToken,
 } from '../utils/reset-password';
+import { OriginSite } from '@eshopper/shared-types';
 
 export async function SignupService(
   data: z.infer<typeof RegisterUserSchema>['body']
 ) {
-  const { email, password, name } = data;
+  const { email, password, name, role } = data;
   const ownership = await dbProvider.getPrisma().emailOwnership.findUnique({
     where: {
       email,
@@ -49,6 +50,7 @@ export async function SignupService(
   const user = await dbProvider.getPrisma().users.create({
     data: {
       name,
+      role,
       emailOwnership: {
         create: [{ email, isVerified: false }],
       },
@@ -324,9 +326,23 @@ export async function loginService(email: string, password: string) {
       where: {
         email,
       },
+      include: {
+        user: {
+          select: {
+            role: true,
+          },
+        },
+      },
     });
 
-  return { account, isVerified: emailOwnership?.isVerified ?? false };
+  if (!emailOwnership) {
+    throw new AuthenticationError('No user exist for this email!');
+  }
+  return {
+    account,
+    isVerified: emailOwnership.isVerified,
+    role: emailOwnership.user.role,
+  };
 }
 
 export async function refreshTokens(req: IRequest) {
@@ -407,64 +423,177 @@ function formatDuration(seconds: number): string {
   return `${seconds} seconds`;
 }
 
-export async function resetPassword(password: string, token: string) {
-  const result = await verifyResetPasswordToken(token);
-  if (result.result === false) {
-    // deal with rate limiting wrong tokens
-    const falseTokenCount = await redisProvider.get(
-      `false_token_count:${token}`
+// Helper function to increment false token count and handle rate limiting
+async function incrementFalseTokenCount(token: string): Promise<boolean> {
+  const falseTokenCount = await redisProvider.get(`false_token_count:${token}`);
+
+  if (!falseTokenCount) {
+    await redisProvider.setTTL(
+      `false_token_count:${token}`,
+      '1',
+      config.get('MAX_FALSE_TOKEN_COUNT_WINDOW')
     );
-    if (!falseTokenCount) {
-      await redisProvider.setTTL(
-        `false_token_count:${token}`,
-        '1',
-        config.get('MAX_FALSE_TOKEN_COUNT_WINDOW')
-      );
-    } else {
-      await redisProvider.incr(`false_token_count:${token}`);
-      if (
-        parseInt(falseTokenCount) + 1 >=
-        config.get('MAX_FALSE_TOKEN_COUNT')
-      ) {
-        // block the user
-        if (result.email) {
-          const account = await dbProvider.getPrisma().account.findFirst({
+    return false; // Not rate limited yet
+  } else {
+    const newCount = await redisProvider.incr(`false_token_count:${token}`);
+
+    if (newCount >= config.get('MAX_FALSE_TOKEN_COUNT')) {
+      // Handle user blocking logic
+      const result = await verifyResetPasswordToken(token);
+      if (result.email) {
+        const account = await dbProvider.getPrisma().account.findFirst({
+          where: {
+            email: result.email,
+            type: 'PASSWORD',
+          },
+        });
+        const emailOwnership = await dbProvider
+          .getPrisma()
+          .emailOwnership.findUnique({
             where: {
               email: result.email,
-              type: 'PASSWORD',
             },
           });
-          const emailOwnership = await dbProvider
-            .getPrisma()
-            .emailOwnership.findUnique({
-              where: {
-                email: result.email,
-              },
-            });
-          // Throw generic error for blocked/unverified
-          if (
-            !account ||
-            !account.password ||
-            account.type !== 'PASSWORD' ||
-            !emailOwnership?.isVerified
-          ) {
-            throw new AppError(
-              'Unable to reset password. Please contact support.',
-              StatusCode.BAD_REQUEST,
-              StatusCode.BAD_REQUEST,
-              true
-            );
-          }
+
+        // Only block if account exists and is verified
+        if (account && account.password && emailOwnership?.isVerified) {
           await blockUser(account.userId);
-          throw new AppError(
-            'Unable to reset password. Please contact support.',
-            StatusCode.BAD_REQUEST,
-            StatusCode.BAD_REQUEST,
-            true
-          );
         }
       }
+      return true; // Rate limited
     }
+    return false; // Not rate limited yet
+  }
+}
+
+// Helper function to check if token is currently rate limited
+async function isTokenRateLimited(
+  token: string
+): Promise<{ rateLimited: boolean; retryAfter?: number }> {
+  const falseTokenCount = await redisProvider.get(`false_token_count:${token}`);
+  const currentCount = parseInt(falseTokenCount || '0');
+
+  if (currentCount >= config.get('MAX_FALSE_TOKEN_COUNT')) {
+    const ttl = await redisProvider.getTTLTimeLeft(
+      `false_token_count:${token}`
+    );
+    return {
+      rateLimited: true,
+      retryAfter: ttl > 0 ? ttl : undefined,
+    };
+  }
+
+  return { rateLimited: false };
+}
+
+// Helper function to validate account and email ownership
+async function validateAccountAndEmail(email: string): Promise<boolean> {
+  const account = await dbProvider.getPrisma().account.findFirst({
+    where: {
+      email: email,
+      type: 'PASSWORD',
+    },
+  });
+
+  const emailOwnership = await dbProvider
+    .getPrisma()
+    .emailOwnership.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+  return !!(account && account.password && emailOwnership?.isVerified);
+}
+
+export async function verifyResetPasswordService(
+  token: string,
+  origin: OriginSite
+) {
+  // First check if token is currently rate limited
+  const rateLimitCheck = await isTokenRateLimited(token);
+  if (rateLimitCheck.rateLimited) {
+    return {
+      valid: false,
+      rateLimited: true,
+      retryAfter: rateLimitCheck.retryAfter,
+    };
+  }
+
+  // Verify the token itself
+  const result = await verifyResetPasswordToken(token);
+
+  if (result.result === false) {
+    return {
+      valid: false,
+      rateLimited: false,
+      email: result.email,
+    };
+  }
+  const userRole = await dbProvider.getPrisma().emailOwnership.findUnique({
+    where: {
+      email: result.email,
+    },
+    include: {
+      user: {
+        select: {
+          role: true,
+        },
+      },
+    },
+  });
+  if (!userRole) throw new BadRequestError('This user does not exist!');
+
+  if (origin !== userRole.user.role) {
+    throw new BadRequestError('Please access the correct url');
+  }
+  // Verify the account exists and is valid
+  if (!result.email || !(await validateAccountAndEmail(result.email))) {
+    return {
+      valid: false,
+      rateLimited: false,
+      email: result.email,
+    };
+  }
+
+  return {
+    valid: true,
+    rateLimited: false,
+    email: result.email,
+    randomId: result.randomId,
+  };
+}
+
+export async function resetPassword(
+  password: string,
+  token: string,
+  origin: OriginSite
+) {
+  // First verify the token
+  const verification = await verifyResetPasswordService(token, origin);
+
+  if (!verification.valid) {
+    if (verification.rateLimited) {
+      throw new AppError(
+        'Too many failed attempts. Please try again later.',
+        StatusCode.TOO_MANY_REQUESTS,
+        StatusCode.TOO_MANY_REQUESTS,
+        true
+      );
+    }
+
+    // Increment false token count for invalid tokens
+    const isRateLimited = await incrementFalseTokenCount(token);
+
+    if (isRateLimited) {
+      throw new AppError(
+        'Unable to reset password. Please contact support.',
+        StatusCode.TOO_MANY_REQUESTS,
+        StatusCode.TOO_MANY_REQUESTS,
+        true
+      );
+    }
+
     throw new AppError(
       'Invalid token',
       StatusCode.BAD_REQUEST,
@@ -473,21 +602,16 @@ export async function resetPassword(password: string, token: string) {
     );
   }
 
+  // Get the account (we know it exists from verification)
   const account = await dbProvider.getPrisma().account.findFirst({
     where: {
-      email: result.email!,
+      email: verification.email!,
       type: 'PASSWORD',
     },
   });
-  const emailOwnership = await dbProvider
-    .getPrisma()
-    .emailOwnership.findUnique({
-      where: {
-        email: result.email!,
-      },
-    });
-  // Throw generic error for blocked/unverified
-  if (!account || !account.password || !emailOwnership?.isVerified) {
+
+  // Additional safety check (shouldn't happen if verification works correctly)
+  if (!account || !account.password) {
     throw new AppError(
       'Unable to reset password. Please contact support.',
       StatusCode.BAD_REQUEST,
@@ -496,10 +620,13 @@ export async function resetPassword(password: string, token: string) {
     );
   }
 
-  const hashedPassword = await compareString(account.password, password);
-  if (hashedPassword) {
+  // Check if new password is the same as old password
+  const isSamePassword = await compareString(account.password, password);
+  if (isSamePassword) {
     throw new BadRequestError('Password is the same as the old one');
   }
+
+  // Update the password
   await dbProvider.getPrisma().account.update({
     where: {
       id: account.id,
@@ -509,8 +636,8 @@ export async function resetPassword(password: string, token: string) {
     },
   });
 
+  // Send notification email
   await kafkaProvider.sendMessage({
-    // send email to the user
     topic: 'notifications',
     key: account.email,
     value: JSON.stringify({
@@ -520,6 +647,8 @@ export async function resetPassword(password: string, token: string) {
       userName: account.email,
     }),
   });
+
+  // Set password change timestamp
   const expiresAt =
     Date.now() + config.get('MAX_PASSWORD_CHANGE_WINDOW') * 1000;
   await redisProvider.setTTL(
@@ -527,24 +656,38 @@ export async function resetPassword(password: string, token: string) {
     expiresAt.toString(),
     config.get('MAX_PASSWORD_CHANGE_WINDOW')
   );
-  Promise.all([
+
+  // Clean up Redis keys
+  await Promise.all([
     redisProvider.delete(`false_token_count:${token}`),
     redisProvider.delete(`reset_password_cooldown:${account.email}`),
     redisProvider.delete(`reset_password_count:${account.email}`),
-    redisProvider.delete(`reset_password_token:${result.randomId}`),
+    redisProvider.delete(`reset_password_token:${verification.randomId}`),
+    redisProvider.delete(`email_reset_password_token:${account.email}`),
   ]);
 
   return account.userId;
 }
 
-export async function resetPasswordRequest(email: string) {
+export async function resetPasswordRequest(email: string, origin: OriginSite) {
   const account = await dbProvider.getPrisma().account.findFirst({
     where: {
       email,
       type: 'PASSWORD',
     },
+    include: {
+      user: {
+        select: {
+          role: true,
+        },
+      },
+    },
   });
+
   if (!account) {
+    return;
+  }
+  if (account.user.role !== origin) {
     return;
   }
 
@@ -555,7 +698,7 @@ export async function resetPasswordRequest(email: string) {
         email,
       },
     });
-  const isBlocked = await isUserBlocked(account.userId);
+  const isBlocked = (await isUserBlocked(account.userId)) > 0;
   if (isBlocked || !emailOwnership?.isVerified) {
     return;
   }

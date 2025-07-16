@@ -19,6 +19,9 @@ export const RegisterUserSchema = z.object({
       .min(8, {
         message: 'Password must be at least 8 characters long',
       }),
+    role: z.enum(['seller', 'shopper'], {
+      required_error: 'Please enter the role',
+    }),
   }),
 });
 

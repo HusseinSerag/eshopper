@@ -10,7 +10,7 @@ export default async function HomePage() {
     <ProtectedServerComponent
       redirection={{
         onBlocked: true,
-        onInverification: false,
+        onInverification: true,
       }}
       axiosClient={axiosClient}
       Component={({ user }) => {

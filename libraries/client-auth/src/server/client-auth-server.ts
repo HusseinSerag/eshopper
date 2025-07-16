@@ -1,7 +1,7 @@
 import { AxiosClient } from '@eshopper/utils/client';
 import { ErrorResponse, User } from '@eshopper/shared-types';
 import { AxiosError } from 'axios';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 type ResponseObject =
   | { success: true; user: User; refreshed: false }
@@ -37,13 +37,18 @@ type ResponseObject =
 export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
+  const headersInstance = await headers();
+  const headersObj: Record<string, any> = {};
+  for (const [key, value] of headersInstance.entries()) {
+    headersObj[key] = value;
+  }
+  headersObj['cookie'] = cookieHeader; // Ensure cookies are set
+
   try {
     const getMeRes = await axios.getInstance().request({
       method: 'GET',
       url: '/auth/me',
-      headers: {
-        cookie: cookieHeader,
-      },
+      headers: headersObj,
     });
     return {
       success: true,

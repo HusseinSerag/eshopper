@@ -12,6 +12,11 @@ export async function generateAndStoreResetPasswordToken(
   email: string,
   ttl = 1800
 ): Promise<string> {
+  //0. delete old token if exists
+  const key = await redisProvider.get(`email_reset_password_token:${email}`);
+  if (key) {
+    redisProvider.delete(key);
+  }
   // 1. Generate a secure random token (48 bytes, hex encoded)
   const rawToken = crypto.randomBytes(48).toString('hex');
   const randomId = crypto.randomBytes(16).toString('hex');
@@ -26,6 +31,11 @@ export async function generateAndStoreResetPasswordToken(
     }),
     ttl
   );
+  await redisProvider.setTTL(
+    `email_reset_password_token:${email}`,
+    `reset_password_token:${randomId}`,
+    ttl
+  );
   // 4. Return the raw token
   return `${rawToken}:${randomId}`;
 }
@@ -37,7 +47,7 @@ export async function generateAndStoreResetPasswordToken(
  * @param consume If true, deletes the token from Redis after successful verification (default: true)
  * @returns True if the token is valid, false otherwise
  */
-export async function verifyResetPasswordToken(token: string, consume = true) {
+export async function verifyResetPasswordToken(token: string) {
   const [rawToken, randomId] = token.split(':');
   if (!rawToken || !randomId) {
     return {

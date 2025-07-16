@@ -13,6 +13,7 @@ import {
   getMeController,
   getVerificationInfo,
   getBlockedInfoController,
+  VerifyResetPasswordTokenController,
 } from '../controllers/auth.controller';
 import { validationMiddleware } from '@eshopper/middleware';
 import {
@@ -32,10 +33,18 @@ import swaggerUi from 'swagger-ui-express';
 import { config } from '../provider';
 import { logger } from '@eshopper/logger';
 import { createAuthProviderRoutes } from './auth-provider.router';
+import { createSellerRoutes } from './createSellerRoutes';
+import { validateHeadersMiddleware } from '@eshopper/global-configuration';
 
 export function createRoutes(app: Express) {
   app.use(express.json({ limit: '100mb' }));
   app.use(express.urlencoded({ limit: '100mb', extended: true }));
+  app.use(
+    '/oauth',
+    createAuthProviderRoutes(tokenProvider, dbProvider, redisProvider)
+  );
+
+  app.use(validateHeadersMiddleware);
 
   app.post(
     '/register',
@@ -43,6 +52,7 @@ export function createRoutes(app: Express) {
     SignupController
   );
 
+  app.post('/refresh', RefreshTokensController);
   app.post('/login', validationMiddleware(LoginUserSchema), LoginController);
 
   app.post(
@@ -63,14 +73,13 @@ export function createRoutes(app: Express) {
     LogAllOutController
   );
 
-  app.post('/refresh', RefreshTokensController);
-
   app.post(
     '/reset-password-request',
     validationMiddleware(ResetPasswordRequestSchema),
     ResetPasswordRequestController
   );
 
+  app.post('/verify-reset-password-token', VerifyResetPasswordTokenController);
   app.post(
     '/reset-password',
     validationMiddleware(ResetPasswordSchema),
@@ -127,8 +136,8 @@ export function createRoutes(app: Express) {
   );
 
   app.use(
-    '/oauth',
-    createAuthProviderRoutes(tokenProvider, dbProvider, redisProvider)
+    '/seller',
+    createSellerRoutes(tokenProvider, dbProvider, redisProvider)
   );
 
   if (config.get('NODE_ENV') === 'development') {

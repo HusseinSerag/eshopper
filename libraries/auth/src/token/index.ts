@@ -2,7 +2,6 @@ import { SignOptions } from 'jsonwebtoken';
 import { TokenManager } from '../jwt';
 import { hashString } from '@eshopper/utils';
 import { VerifyOptions } from 'jsonwebtoken';
-import { logger } from '@eshopper/logger';
 
 type TokenType = 'access' | 'refresh';
 
@@ -45,11 +44,6 @@ export class TokenProvider {
       options,
       type: 'access',
     });
-    logger.info(`Generated access token:}`, {
-      data: this.decodeToken({
-        token: accessToken,
-      }),
-    });
 
     const hashedAccessToken = await hashString(accessToken);
     const refreshToken = this.generateToken({
@@ -60,11 +54,7 @@ export class TokenProvider {
       options,
       type: 'refresh',
     });
-    logger.info(`Generated refresh token:`, {
-      data: this.decodeToken({
-        token: refreshToken,
-      }),
-    });
+
     return {
       accessToken,
       refreshToken,

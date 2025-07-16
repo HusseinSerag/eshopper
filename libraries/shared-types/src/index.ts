@@ -50,11 +50,13 @@ export interface ErrorResponse {
 }
 
 export interface OAuthState {
-  action: 'link' | 'login' | 'signup';
+  action: OAuthModes;
   userId?: string;
   nonce: string;
   timestamp: number;
   returnTo?: string;
+  url: string;
+  origin: string;
 }
 
 // Utility types
@@ -83,5 +85,6 @@ export type BlockedInfoResponse = {
 };
 
 export type OAuthModes = 'link' | 'login' | 'signup';
+export type OriginSite = 'seller' | 'admin' | 'shopper';
 // Re-export utilities
 export * from './utils.js';

@@ -58,11 +58,18 @@ model Account {
   @@unique([userId, type])
 }
 
+
+enum Role {
+  admin
+  seller
+  shopper
+}
 model Users {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   name String
+  role Role
   avatar Avatar?
   sessions  Session[]
   emailOwnership EmailOwnership[]

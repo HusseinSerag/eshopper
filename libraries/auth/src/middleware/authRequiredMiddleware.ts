@@ -3,23 +3,32 @@ import { IRequest } from '@eshopper/global-configuration';
 
 import {
   asyncErrorHandler,
+  AuthorizationError,
   RefreshTokenExpiredError,
   UserBlocked,
 } from '@eshopper/error-handler';
 import { TokenProvider } from '../token';
-import { AccountType, DatabaseProvider, Session } from '@eshopper/database';
+import {
+  AccountType,
+  DatabaseProvider,
+  Session,
+  Role,
+} from '@eshopper/database';
 import { Redis } from '@eshopper/redis';
 import { AuthenticationError } from '@eshopper/error-handler';
 import { compareString } from '@eshopper/utils';
 
 export function extractToken(req: IRequest) {
   // we have authorization(access token) fallback_access_token fallback_refresh_token in headers
-  // in cookies we have accessToken and refreshToken
+  // in cookies we have (origin)_accessToken and (origin)_refreshToken
 
-  const accessToken = (req.headers.authorization?.split(' ')?.[1] ||
-    req.headers.fallback_access_token ||
-    req.cookies.accessToken) as string;
-  const refreshToken = (req.cookies.refreshToken ||
+  //const origin = (req.headers['x-origin-site'] as string).replace(/\./g, '_');
+
+  const accessToken = (req.cookies['accessToken'] ||
+    req.headers.authorization?.split(' ')?.[1] ||
+    req.headers.fallback_access_token) as string;
+
+  const refreshToken = (req.cookies['refreshToken'] ||
     req.headers.fallback_refresh_token) as string;
 
   if (!accessToken || !refreshToken) {
@@ -40,7 +49,9 @@ export async function validateTokens(
   });
 
   if (!result) {
-    throw new AuthenticationError('Invalid refresh token please login again');
+    throw new AuthenticationError(
+      'no result so Invalid refresh token please login again'
+    );
   }
   const resAccessToken = tokenProvider.verifyToken({
     token: accessToken,
@@ -59,7 +70,9 @@ export async function validateTokens(
   });
 
   if (!decoded) {
-    throw new AuthenticationError('Invalid refresh token please login again');
+    throw new AuthenticationError(
+      'No information so Invalid refresh token please login again'
+    );
   }
   const userId = decoded.userId as string;
   const accessTokenHashed = decoded.accessToken as string;
@@ -238,6 +251,32 @@ export function checkAccountStatusMiddleware(
     next();
   });
 }
+
+export function allowRoles(role: Role, ...roles: Role[]) {
+  const isAllowed = roles.includes(role);
+
+  if (isAllowed) {
+    return true;
+  } else {
+    throw new AuthorizationError(
+      "Cannot access this route. You don't have the required role."
+    );
+  }
+}
+
+export const AllowRolesMiddleware = (...roles: Role[]) => {
+  return asyncErrorHandler(async function (
+    req: IRequest,
+    res: Response,
+    next: NextFunction
+  ) {
+    if (!req.user) {
+      throw new AuthorizationError('Unauthorized. User not found in request.');
+    }
+    allowRoles(req.user.role, ...roles);
+    next();
+  });
+};
 
 export const optionalAuthMiddleware = (
   tokenProvider: TokenProvider,

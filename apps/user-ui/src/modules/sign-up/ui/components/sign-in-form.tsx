@@ -48,6 +48,7 @@ export function SignInForm() {
         toast.error(error.message);
       },
       onSuccess() {
+        toast.success('Logged in successfully!');
         router.push('/');
       },
     });
@@ -59,9 +60,7 @@ export function SignInForm() {
       const data = await getGoogleLink(authContext.httpClient, 'login');
       window.location.href = data;
     } catch (error) {
-      console.error('Error getting Google OAuth link:', error);
-      // You could show a toast notification here
-      // For now, we'll just log the error
+      toast.error('Error getting link');
     } finally {
       setIsLoadingProvider(false);
     }

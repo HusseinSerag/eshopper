@@ -7,6 +7,7 @@ import { optionalAuthMiddleware } from '@eshopper/auth';
 import { TokenProvider } from '@eshopper/auth';
 import { DatabaseProvider } from '@eshopper/database';
 import { Redis } from '@eshopper/redis';
+import { validateHeadersMiddleware } from '@eshopper/global-configuration';
 
 export function createAuthProviderRoutes(
   tokenProvider: TokenProvider,
@@ -16,6 +17,7 @@ export function createAuthProviderRoutes(
   const router = Router();
   router.get(
     '/google',
+    validateHeadersMiddleware,
     optionalAuthMiddleware(tokenProvider, databaseProvider, redis),
     GoogleOAuthController(redis)
   );
