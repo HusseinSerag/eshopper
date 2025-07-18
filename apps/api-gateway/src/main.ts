@@ -22,7 +22,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: config.get('CLIENT_ORIGIN'),
+    origin: [config.get('CLIENT_ORIGIN'), config.get('SELLER_ORIGIN')],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: [

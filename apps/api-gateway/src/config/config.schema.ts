@@ -9,4 +9,5 @@ export const ConfigSchema = z.object({
   AUTH_SERVICE: z.string().default('http://localhost:3002'),
   HOST: z.string().default('localhost'),
   NOTIFICATION_SERVICE: z.string().default('http://localhost:3003'),
+  SELLER_ORIGIN: z.string(),
 });

@@ -33,7 +33,7 @@ async function startApp() {
   app.use(
     cors({
       credentials: true,
-      origin: config.get('CLIENT_ORIGIN'),
+      origin: [config.get('CLIENT_ORIGIN'), config.get('SELLER_ORIGIN')],
     })
   );
 
