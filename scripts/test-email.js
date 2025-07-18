@@ -6,13 +6,13 @@ const fs = require('fs');
 
 // Test configuration - replace with your actual values
 const emailConfig = {
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  host: process.env.EMAIL_HOST,
   port: parseInt(process.env.EMAIL_PORT) || 587,
-  user: process.env.EMAIL_USER || 'husseinserag2014@gmail.com',
-  pass: process.env.EMAIL_PASS || 'mjdx oerl arjg bpew',
-  from: process.env.EMAIL_FROM || 'husseinserag2014@gmail.com',
-  fromName: process.env.EMAIL_FROM_NAME || 'eShopper',
-  service: process.env.EMAIL_SERVICE || 'gmail',
+  user: process.env.EMAIL_USER,
+  pass: process.env.EMAIL_PASS,
+  from: process.env.EMAIL_FROM,
+  fromName: process.env.EMAIL_FROM_NAME,
+  service: process.env.EMAIL_SERVICE,
 };
 
 console.log('Testing email configuration:', {
