@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { AxiosError } from 'axios';
 import { useAuthContext } from '../context/useAuthContext';
 import { ErrorResponse } from '@eshopper/shared-types';
+import { RequestError } from '../lib/errors';
 
 export const useLogin = () => {
   const queryClient = useQueryClient();
@@ -22,6 +23,8 @@ export const useLogin = () => {
         if (e instanceof AxiosError) {
           const data = e.response?.data as ErrorResponse;
           throw new Error(data.message);
+        } else if (e instanceof RequestError) {
+          throw new Error(e.message);
         }
         throw new Error('Login Failed');
       }

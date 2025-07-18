@@ -1,5 +1,5 @@
-import { useAuthContext } from '@eshopper/client-auth/client';
 import { useMutation } from '@tanstack/react-query';
+import { useAuthContext } from '../../../context/useAuthContext';
 
 export function useSendPasswordRequest() {
   const context = useAuthContext();
