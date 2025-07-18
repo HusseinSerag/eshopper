@@ -20,9 +20,14 @@ export type BaseUser = {
   createdAt: string;
   updatedAt: string;
   name: string;
+  role: string;
 };
-export interface ShopperUser extends BaseUser {}
-export interface SellerUser extends BaseUser {}
+export interface ShopperUser extends BaseUser {
+  role: 'shopper';
+}
+export interface SellerUser extends BaseUser {
+  role: 'seller';
+}
 
 // Account types
 export enum AccountType {

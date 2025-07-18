@@ -1,4 +1,4 @@
-import { useSendNewPasswordRequest } from '@/modules/reset-password/hooks/useSendNewPassword';
+import { useSendNewPasswordRequest } from '@/modules/reset-password/hooks/useSendPassword';
 import { axiosClient } from '@/utils/axios';
 import { getAuthClient, RequestError } from '@eshopper/client-auth';
 import { ResetPasswordView } from '@eshopper/client-auth/client';
@@ -25,7 +25,7 @@ export default async function ResetPasswordPage({ searchParams }: Props) {
 
   try {
     await client.request({
-      url: `/auth/verify-reset-password-token?token=${token}`,
+      url: `/auth/seller/verify-reset-password-token?token=${token}`,
       method: 'post',
     });
 

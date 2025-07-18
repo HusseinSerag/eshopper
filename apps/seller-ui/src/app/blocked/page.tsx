@@ -16,12 +16,12 @@ export default async function BlockedPage() {
         const queryClient = await prefetchAuthenticatedQuery(
           axiosClient,
           ['blocked-info'],
-          '/auth/blocked-info',
+          '/auth/seller/blocked-info',
           freshTokens
         );
         return (
           <HydrationBoundary state={dehydrate(queryClient)}>
-            <BlockedView />
+            <BlockedView isSeller />
           </HydrationBoundary>
         );
       }}

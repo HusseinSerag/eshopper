@@ -1,3 +1,4 @@
+'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -16,13 +17,26 @@ import { Input } from '@eshopper/ui';
 import { FaGoogle } from 'react-icons/fa';
 import Link from 'next/link';
 
-import { useAuthContext } from '@eshopper/client-auth/client';
 import { useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
-import { useSignup } from '../../hooks/useSignup';
-import { getGoogleLink } from '@eshopper/client-auth';
-export function SignUpForm() {
+
+import type { UseMutationResult } from '@tanstack/react-query';
+import { useAuthContext } from '../../../../context/useAuthContext';
+import { getGoogleLink } from '../../../../lib/get-google-link';
+interface SignUpFormProps {
+  useMutation: () => UseMutationResult<
+    void,
+    Error,
+    {
+      name: string;
+      email: string;
+      password: string;
+    },
+    unknown
+  >;
+}
+export function SignUpForm({ useMutation }: SignUpFormProps) {
   const params = useSearchParams();
   const error = params.get('error');
 
@@ -36,7 +50,7 @@ export function SignUpForm() {
       password: '',
     },
   });
-  const signupMutation = useSignup();
+  const signupMutation = useMutation();
   const [isLoadingProvider, setIsLoadingProvider] = useState(false);
 
   const disabled = isLoadingProvider || signupMutation.isPending;
@@ -49,6 +63,7 @@ export function SignUpForm() {
     setIsLoadingProvider(true);
     try {
       const data = await getGoogleLink(authContext.httpClient, 'signup');
+      // @ts-expect-error this works in client
       window.location.href = data;
     } catch (error) {
       console.error('Error getting Google OAuth link:', error);

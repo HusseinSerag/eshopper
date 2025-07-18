@@ -1,8 +1,11 @@
 'use client';
-import { useAuthContext } from '@eshopper/client-auth/client';
+import {
+  NewPasswordSchema,
+  useAuthContext,
+} from '@eshopper/client-auth/client';
 import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
-import { NewPasswordSchema } from '@eshopper/client-auth/client';
+
 import { useSearchParams } from 'next/navigation';
 
 export function useSendNewPasswordRequest() {
@@ -20,7 +23,7 @@ export function useSendNewPasswordRequest() {
       if (!token) throw Error('No token');
       passedParams.set('token', token);
       return await context.httpClient.request({
-        url: '/auth/reset-password?' + passedParams.toString(),
+        url: '/auth/seller/reset-password?' + passedParams.toString(),
         method: 'post',
         body: body,
       });

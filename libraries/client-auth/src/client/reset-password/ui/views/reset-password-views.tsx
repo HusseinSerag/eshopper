@@ -16,16 +16,34 @@ import {
 
 import { useForm } from 'react-hook-form';
 import z from 'zod';
-import { ResetPasswordSchema } from '../../schema/reset-password.schema';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSendNewPasswordRequest } from '../../hooks/useSendNewPassword';
+
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import type { UseMutationResult } from '@tanstack/react-query';
+import { NewPasswordSchema } from '../../../schemas';
 
-export function ResetPasswordView() {
-  const sendPassword = useSendNewPasswordRequest();
-  const form = useForm<z.infer<typeof ResetPasswordSchema>>({
-    resolver: zodResolver(ResetPasswordSchema),
+interface ResetPasswordViewProps {
+  useMutation: () => UseMutationResult<
+    unknown,
+    Error,
+    {
+      password: string;
+      logOutAllDevices: boolean;
+    },
+    unknown
+  >;
+  redirectUrl: string;
+}
+export function ResetPasswordView({
+  redirectUrl,
+  useMutation,
+}: ResetPasswordViewProps) {
+  //const sendPassword = useSendNewPasswordRequest();
+  const sendPassword = useMutation();
+  const form = useForm<z.infer<typeof NewPasswordSchema>>({
+    resolver: zodResolver(NewPasswordSchema),
     defaultValues: {
       logOutAllDevices: false,
       password: '',
@@ -34,7 +52,7 @@ export function ResetPasswordView() {
 
   const router = useRouter();
   const disabled = sendPassword.isPending;
-  function onSubmit(values: z.infer<typeof ResetPasswordSchema>) {
+  function onSubmit(values: z.infer<typeof NewPasswordSchema>) {
     if (disabled) return;
     sendPassword.mutate(values, {
       onError(error) {
@@ -42,7 +60,7 @@ export function ResetPasswordView() {
       },
       onSuccess() {
         toast('Password successfully changed');
-        router.push('/auth/sign-in');
+        router.push(redirectUrl);
       },
     });
   }

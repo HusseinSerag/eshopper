@@ -1,14 +1,18 @@
 'use client';
-import { useAuthenticatedQuery } from '@eshopper/client-auth/client';
+
 import { BlockedInfoResponse } from '@eshopper/shared-types';
 import { useCountdown } from '@eshopper/ui';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useAuthenticatedQuery } from '../../../../hooks/useAuthenticatedQuery';
 
-export function BlockedView() {
+interface BlockedViewProps {
+  isSeller?: boolean;
+}
+export function BlockedView({ isSeller }: BlockedViewProps) {
   const { data } = useAuthenticatedQuery<{ data: BlockedInfoResponse }>(
     ['blocked-info'],
-    '/auth/blocked-info'
+    isSeller ? '/auth/seller/blocked-info' : '/auth/blocked-info'
   );
   const router = useRouter();
 

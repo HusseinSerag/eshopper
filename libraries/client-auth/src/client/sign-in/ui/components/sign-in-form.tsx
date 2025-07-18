@@ -1,3 +1,4 @@
+'use client';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -26,8 +27,19 @@ import { ResetPasswordForm } from './reset-email-form';
 import { getGoogleLink } from '../../../../lib/get-google-link';
 import { useLogin } from '../../../../hooks/useLogin';
 import { useAuthContext } from '../../../../context/useAuthContext';
+import { UseMutationResult } from '@tanstack/react-query';
 
-export function SignInForm() {
+interface SignInFormProps {
+  useMutation: () => UseMutationResult<
+    {
+      message: string;
+    },
+    Error,
+    string,
+    unknown
+  >;
+}
+export function SignInForm({ useMutation }: SignInFormProps) {
   const params = useSearchParams();
   const error = params.get('error');
 
@@ -72,7 +84,7 @@ export function SignInForm() {
 
   return (
     <Dialog>
-      <ResetPasswordForm />
+      <ResetPasswordForm useMutation={useMutation} />
 
       <div className=" w-full">
         <Form {...form}>

@@ -1,5 +1,4 @@
 'use client';
-
 import { SignUpForm } from '@eshopper/client-auth/client';
 import { useSignup } from '../../hooks/useSignup';
 

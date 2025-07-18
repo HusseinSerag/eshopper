@@ -387,6 +387,7 @@ const getMeController = asyncErrorHandler(
     const response: MeShopperResponse = {
       user: {
         ...userInformation!,
+        role: 'shopper',
         createdAt: userInformation!.createdAt.toISOString(),
         updatedAt: userInformation!.updatedAt.toISOString(),
         avatar: userInformation!.avatar

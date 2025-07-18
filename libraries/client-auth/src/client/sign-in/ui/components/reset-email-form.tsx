@@ -16,20 +16,31 @@ import {
 } from '@eshopper/ui';
 
 import { useForm } from 'react-hook-form';
-import { ResetPasswordSchema } from '../../schemas/reset-password.schema';
+import { ResetPasswordSchema } from '../../../schemas';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSendPasswordRequest } from '../../hooks/useSendPasswordRequest';
+
 import { toast } from 'sonner';
-export function ResetPasswordForm() {
+import { UseMutationResult } from '@tanstack/react-query';
+interface ResetPasswordFormProps {
+  useMutation: () => UseMutationResult<
+    {
+      message: string;
+    },
+    Error,
+    string,
+    unknown
+  >;
+}
+export function ResetPasswordForm({ useMutation }: ResetPasswordFormProps) {
   const form = useForm<z.infer<typeof ResetPasswordSchema>>({
     resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
       email: '',
     },
   });
-  const sendPassword = useSendPasswordRequest();
 
+  const sendPassword = useMutation();
   const disabled = sendPassword.isPending;
 
   function onSubmit(values: z.infer<typeof ResetPasswordSchema>) {
