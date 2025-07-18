@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 
-import type { User, MeResponse } from '@eshopper/shared-types';
+import type { ShopperUser, MeShopperResponse } from '@eshopper/shared-types';
 import { useAuthContext } from '../context/useAuthContext';
 import { BlockedError } from '../lib/errors';
 
@@ -13,7 +13,7 @@ export function useAuth() {
     isError,
     refetch,
   } = useQuery<
-    | { user: User; success: true }
+    | { user: ShopperUser; success: true }
     | {
         success: false;
         user: null;
@@ -26,7 +26,7 @@ export function useAuth() {
         const response = (await authContext.httpClient.request({
           url: '/auth/me',
           method: 'get',
-        })) as MeResponse;
+        })) as MeShopperResponse;
         return { user: response.user, success: true };
       } catch (e) {
         if (e instanceof BlockedError)

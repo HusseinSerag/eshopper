@@ -1,6 +1,6 @@
-import type { User, MeResponse } from '@eshopper/shared-types';
+import type { ShopperUser, MeShopperResponse } from '@eshopper/shared-types';
 
-export type { User, MeResponse };
+export type { ShopperUser as User, MeShopperResponse as MeResponse };
 
 export interface AuthTokens {
   accessToken: string;
@@ -8,7 +8,7 @@ export interface AuthTokens {
 }
 
 export interface AuthState {
-  user: User | null;
+  user: ShopperUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
 }

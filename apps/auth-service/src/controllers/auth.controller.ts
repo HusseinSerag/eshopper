@@ -40,7 +40,7 @@ import { IRequest } from '@eshopper/global-configuration';
 import { checkAccountStatus } from '@eshopper/auth';
 import type {
   BlockedInfoResponse,
-  MeResponse,
+  MeShopperResponse,
   OriginSite,
   VerificationInfoResponse,
 } from '@eshopper/shared-types';
@@ -384,7 +384,7 @@ const getMeController = asyncErrorHandler(
       },
     });
 
-    const response: MeResponse = {
+    const response: MeShopperResponse = {
       user: {
         ...userInformation!,
         createdAt: userInformation!.createdAt.toISOString(),

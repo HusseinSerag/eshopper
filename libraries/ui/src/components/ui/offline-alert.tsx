@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Alert, AlertDescription, AlertTitle } from '@eshopper/ui';
+import { Alert, AlertDescription, AlertTitle } from './alert';
 import { XIcon } from 'lucide-react';
 
 export function OfflineAlert() {
@@ -19,12 +19,16 @@ export function OfflineAlert() {
       setIsOpen(true);
     };
 
+    // @ts-expect-error this works in client
     window.addEventListener('online', goOnline);
+    // @ts-expect-error this works in client
     window.addEventListener('offline', goOffline);
 
     // Clean up
     return () => {
+      // @ts-expect-error this works in client
       window.removeEventListener('online', goOnline);
+      // @ts-expect-error this works in client
       window.removeEventListener('offline', goOffline);
     };
   }, []);

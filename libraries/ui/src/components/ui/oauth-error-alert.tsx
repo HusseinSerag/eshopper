@@ -4,7 +4,7 @@ import { AlertCircleIcon, RefreshCwIcon } from 'lucide-react';
 import {
   getOAuthError,
   shouldShowRetryButton,
-} from '@/utils/oauth-error-handler';
+} from './../../lib/oauth-error-handler';
 
 interface OAuthErrorAlertProps {
   errorCode: string | null;

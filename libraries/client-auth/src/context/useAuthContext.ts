@@ -5,7 +5,6 @@ import { AuthenticateHttpClient } from '../lib/client-auth';
 
 interface AuthContextValue {
   httpClient: AuthenticateHttpClient;
-  authRoute: string;
 }
 export const AuthContext = createContext<AuthContextValue | undefined>(
   undefined

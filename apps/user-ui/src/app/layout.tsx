@@ -1,7 +1,7 @@
 import { Toaster } from 'sonner';
 import './global.css';
 import { ClientProviders } from '@/components/client-providers/providers';
-import { OfflineAlert } from '@/components/ui/offline-alert';
+import { OfflineAlert } from '@eshopper/ui';
 
 export const metadata = {
   title: 'Eshopper',

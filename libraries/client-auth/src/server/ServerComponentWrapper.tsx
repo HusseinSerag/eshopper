@@ -2,10 +2,10 @@
 
 import { getAuth } from './client-auth-server';
 import { redirect } from 'next/navigation';
-import { Cookie, CookieOptions, User } from '../types';
+import { Cookie, CookieOptions } from '../types';
 import { AxiosClient } from '@eshopper/utils/client';
 import { ClientWrapper } from './client-wrapper';
-import { hasVerifiedEmail } from '@eshopper/shared-types';
+import { BaseUser, hasVerifiedEmail } from '@eshopper/shared-types';
 import { RedirectionComponent } from './RedirectionComponent';
 
 type Redirection = {
@@ -18,13 +18,19 @@ interface RedirectUrls {
   verify: string;
 }
 
-export interface FactoryConfig {
+interface RedirectOn<T extends BaseUser> {
+  callback: (user: T) => boolean;
+  redirectTo: string;
+  priority: number;
+}
+export interface FactoryConfig<T extends BaseUser> {
   redirectUrls: RedirectUrls;
   defaultRedirection?: Redirection;
+  redirectOn?: Array<RedirectOn<T>>;
 }
 
-export interface ProtectedServerComponentHOCProps {
-  Component: React.ComponentType<{ user?: User; [key: string]: any }>;
+export interface ProtectedServerComponentHOCProps<T extends BaseUser> {
+  Component: React.ComponentType<{ user?: T; [key: string]: any }>;
   handleUnauthenticated?: () => void;
   axiosClient: AxiosClient;
   redirection?: Redirection;
@@ -56,11 +62,18 @@ function createCookies(accessToken: string, refreshToken: string) {
   };
 }
 
-export function createProtectedComponent(config: FactoryConfig) {
+export function createProtectedComponent<T extends BaseUser>(
+  config: FactoryConfig<T>
+) {
   const {
     redirectUrls,
     defaultRedirection = { onBlocked: true, onInverification: true },
+    redirectOn = null,
   } = config;
+  let callbacks: Array<RedirectOn<T>> | null;
+  if (redirectOn) {
+    callbacks = redirectOn.sort((a, b) => a.priority - b.priority);
+  }
 
   return async function ProtectedServerComponent({
     Component,
@@ -68,7 +81,7 @@ export function createProtectedComponent(config: FactoryConfig) {
     handleUnauthenticated = () => redirect(redirectUrls.signIn),
     redirection = defaultRedirection,
     ...rest
-  }: ProtectedServerComponentHOCProps) {
+  }: ProtectedServerComponentHOCProps<T>) {
     const data = await getAuth(axiosClient);
 
     if (data.success === false) {
@@ -115,6 +128,19 @@ export function createProtectedComponent(config: FactoryConfig) {
           </ClientWrapper>
         );
       }
+      if (callbacks) {
+        for (const { callback, redirectTo } of callbacks) {
+          const response = callback(data.user as T); // must return true
+          if (response) {
+            return (
+              <ClientWrapper cookies={cookies}>
+                <RedirectionComponent link={redirectTo} />
+              </ClientWrapper>
+            );
+          }
+        }
+      }
+
       return (
         <ClientWrapper cookies={cookies}>
           <Component
@@ -122,7 +148,7 @@ export function createProtectedComponent(config: FactoryConfig) {
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
             }}
-            user={data.user}
+            user={data.user as T}
             {...rest}
           />
           ;
@@ -133,7 +159,16 @@ export function createProtectedComponent(config: FactoryConfig) {
       redirect(redirectUrls.verify);
       return null;
     }
-    if (data.user) return <Component user={data.user} {...rest} />;
+    if (callbacks) {
+      for (const { callback, redirectTo } of callbacks) {
+        const response = callback(data.user as T);
+        if (response) {
+          redirect(redirectTo);
+          return null;
+        }
+      }
+    }
+    if (data.user) return <Component user={data.user as T} {...rest} />;
     return null;
   };
 }

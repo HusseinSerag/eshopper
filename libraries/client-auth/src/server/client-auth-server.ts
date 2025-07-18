@@ -1,10 +1,10 @@
 import { AxiosClient } from '@eshopper/utils/client';
-import { ErrorResponse, User } from '@eshopper/shared-types';
+import { ErrorResponse, ShopperUser } from '@eshopper/shared-types';
 import { AxiosError } from 'axios';
 import { cookies, headers } from 'next/headers';
 
 type ResponseObject =
-  | { success: true; user: User; refreshed: false }
+  | { success: true; user: ShopperUser; refreshed: false }
   | { success: false; user: null }
   | {
       success: true;
@@ -22,7 +22,7 @@ type ResponseObject =
     }
   | {
       success: true;
-      user: User;
+      user: ShopperUser;
       isBlocked: false;
       refreshed: true;
       accessToken: string;
@@ -53,7 +53,7 @@ export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
     return {
       success: true,
       refreshed: false,
-      user: (getMeRes.data as { user: User }).user,
+      user: (getMeRes.data as { user: ShopperUser }).user,
     };
   } catch (error) {
     if (error instanceof AxiosError) {
@@ -117,7 +117,7 @@ export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
             refreshed: true,
             accessToken: accessToken,
             refreshToken: refreshToken,
-            user: (retryRes.data as { user: User }).user,
+            user: (retryRes.data as { user: ShopperUser }).user,
             isBlocked: false,
           };
         } catch (err2) {

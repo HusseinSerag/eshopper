@@ -10,19 +10,22 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  ProviderButton,
+  OAuthErrorAlert,
 } from '@eshopper/ui';
 import { Input } from '@eshopper/ui';
-import { ProviderButton } from '@/components/ui/provider-button';
-import { OAuthErrorAlert } from '@/components/ui/oauth-error-alert';
+
 import { FaGoogle } from 'react-icons/fa';
 import Link from 'next/link';
 
-import { useAuthContext, useLogin } from '@eshopper/client-auth/client';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { getGoogleLink } from '@/modules/sign-in/server';
+
 import { ResetPasswordForm } from './reset-email-form';
+import { getGoogleLink } from '../../../../lib/get-google-link';
+import { useLogin } from '../../../../hooks/useLogin';
+import { useAuthContext } from '../../../../context/useAuthContext';
 
 export function SignInForm() {
   const params = useSearchParams();
@@ -58,6 +61,7 @@ export function SignInForm() {
     setIsLoadingProvider(true);
     try {
       const data = await getGoogleLink(authContext.httpClient, 'login');
+      // @ts-expect-error this runs on the client
       window.location.href = data;
     } catch (error) {
       toast.error('Error getting link');

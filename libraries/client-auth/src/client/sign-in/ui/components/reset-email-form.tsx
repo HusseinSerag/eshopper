@@ -19,7 +19,6 @@ import { useForm } from 'react-hook-form';
 import { ResetPasswordSchema } from '../../schemas/reset-password.schema';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import { useSendPasswordRequest } from '../../hooks/useSendPasswordRequest';
 import { toast } from 'sonner';
 export function ResetPasswordForm() {

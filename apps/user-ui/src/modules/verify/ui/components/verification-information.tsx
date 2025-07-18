@@ -9,12 +9,7 @@ interface Props {
 function Component({ data, onResend }: Props) {
   const { cooldown, minutes, seconds } = useCountdown(data.cooldown);
 
-  const {
-    maxResendRequests,
-
-    maxInvalidOTP,
-    newRequestWindow,
-  } = data;
+  const { maxResendRequests, maxInvalidOTP, newRequestWindow } = data;
 
   const triesLeft = maxInvalidOTP - data.invalidOtpCount;
   return (

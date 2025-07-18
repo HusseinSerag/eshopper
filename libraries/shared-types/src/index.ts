@@ -1,9 +1,5 @@
 // User types
-export interface User {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  name: string;
+export type BaseUser = {
   avatar?: {
     id: string;
     url: string;
@@ -20,7 +16,13 @@ export interface User {
     email: string;
     createdAt: string;
   }>;
-}
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  name: string;
+};
+export interface ShopperUser extends BaseUser {}
+export interface SellerUser extends BaseUser {}
 
 // Account types
 export enum AccountType {
@@ -29,8 +31,11 @@ export enum AccountType {
 }
 
 // API Response types
-export interface MeResponse {
-  user: User;
+export interface MeShopperResponse {
+  user: ShopperUser;
+}
+export interface MeSellerResponse {
+  user: SellerUser;
 }
 
 // OAuth types
@@ -60,15 +65,15 @@ export interface OAuthState {
 }
 
 // Utility types
-export type UserWithPrimaryEmail = User & {
+export type UserWithPrimaryEmail = ShopperUser & {
   primaryEmail: string;
   primaryEmailVerified: boolean;
 };
 
-export type UserWithAccounts = User & {
+export type UserWithAccounts = ShopperUser & {
   hasPasswordAccount: boolean;
   hasGoogleAccount: boolean;
-  primaryAccount: User['account'][0];
+  primaryAccount: ShopperUser['account'][0];
 };
 
 export type VerificationInfoResponse = {

@@ -6,6 +6,9 @@
       "path": "../utils"
     },
     {
+      "path": "../ui"
+    },
+    {
       "path": "../shared-types"
     },
     {
