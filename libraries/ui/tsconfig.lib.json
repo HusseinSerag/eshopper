@@ -32,5 +32,10 @@
     "src/**/*.ts",
     "src/**/*.tsx",
     "../../apps/user-ui/src/components/ui/provider-button.tsx"
+  ],
+  "references": [
+    {
+      "path": "../shared-types"
+    }
   ]
 }

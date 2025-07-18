@@ -11,7 +11,7 @@ module.exports = {
       '{src,pages,components,app}/**/*!(*.stories|*.spec).{js,jsx,ts,tsx,html}'
     ),
     ...createGlobPatternsForDependencies(__dirname),
-    '../../libraries/ui/src/**/*.{js,ts,jsx,tsx}',
+    '../../libraries/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {

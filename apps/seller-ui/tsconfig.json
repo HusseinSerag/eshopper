@@ -52,10 +52,13 @@
       "path": "../../libraries/shared-types"
     },
     {
+      "path": "../../libraries/utils"
+    },
+    {
       "path": "../../libraries/client-auth"
     },
     {
-      "path": "../../libraries/utils"
+      "path": "../../libraries/ui"
     }
   ]
 }
