@@ -74,10 +74,11 @@ export class Redis {
     });
   }
   async connect() {
-    if (!this.isConnected) {
+    const validStates = ['ready', 'connecting'];
+    if (!validStates.includes(this.client.status)) {
       await this.client.connect();
-      this.isConnected = true;
     }
+    this.isConnected = true;
   }
   async set(key: string, value: string) {
     await this.connect();

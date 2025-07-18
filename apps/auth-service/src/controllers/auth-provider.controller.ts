@@ -34,8 +34,9 @@ async function storeOAuthState(
     logger.info(`OAuth state stored: ${key} (expires in ${data.expiry}s)`);
     return true;
   } catch (error) {
+    console.log(error);
     logger.error('Error storing OAuth state in Redis:', { error });
-    throw new Error('Failed to store OAuth state');
+    throw new InternalServerError('Failed to store OAuth state');
   }
 }
 
@@ -434,7 +435,7 @@ export const GoogleOAuthCallbackController = async (
           origin === 'seller' &&
           existingGoogleAccount.user.role === 'shopper'
         ) {
-          res.redirect(
+          return res.redirect(
             `${redirectToClientLink}/auth/sign-in?error=invalid-role`
           );
         }

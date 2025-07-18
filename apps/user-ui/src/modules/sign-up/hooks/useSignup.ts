@@ -1,4 +1,3 @@
-import { getAuthClient } from '@eshopper/client-auth';
 import { useAuthContext } from '@eshopper/client-auth/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';

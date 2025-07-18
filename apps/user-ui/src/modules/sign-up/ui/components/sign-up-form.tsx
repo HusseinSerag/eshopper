@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { SignUpSchema } from '../../schemas/sign-up.schema';
-import { Button } from '@eshopper/ui';
+import { Button, OAuthErrorAlert, ProviderButton } from '@eshopper/ui';
 import {
   Form,
   FormControl,
@@ -12,20 +12,20 @@ import {
   FormMessage,
 } from '@eshopper/ui';
 import { Input } from '@eshopper/ui';
-import { ProviderButton } from '@/components/ui/provider-button';
-import { OAuthErrorAlert } from '@/components/ui/oauth-error-alert';
+
 import { FaGoogle } from 'react-icons/fa';
 import Link from 'next/link';
-import { useQueryClient } from '@tanstack/react-query';
+
 import { useAuthContext } from '@eshopper/client-auth/client';
 import { useState } from 'react';
-import { getGoogleLink } from '../../server';
+
 import { useSearchParams } from 'next/navigation';
 import { useSignup } from '../../hooks/useSignup';
+import { getGoogleLink } from '@eshopper/client-auth';
 export function SignUpForm() {
   const params = useSearchParams();
   const error = params.get('error');
-  const queryClient = useQueryClient();
+
   const authContext = useAuthContext();
   const form = useForm<z.infer<typeof SignUpSchema>>({
     resolver: zodResolver(SignUpSchema),
