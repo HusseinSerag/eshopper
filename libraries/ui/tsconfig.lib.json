@@ -35,6 +35,9 @@
   ],
   "references": [
     {
+      "path": "../client-auth/tsconfig.lib.json"
+    },
+    {
       "path": "../shared-types"
     }
   ]

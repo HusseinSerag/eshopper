@@ -3,6 +3,9 @@
   "include": [],
   "references": [
     {
+      "path": "../client-auth"
+    },
+    {
       "path": "../shared-types"
     },
     {

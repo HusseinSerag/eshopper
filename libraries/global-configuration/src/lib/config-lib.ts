@@ -32,10 +32,10 @@ export function setupApp(app: express.Express) {
   const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: (req: IRequest) => {
-      return req.userId ? 1000 : 100;
+      return req.session ? 1000 : 100;
     },
     message: {
-      error: 'too many requests, please try again later!',
+      message: 'too many requests, please try again later!',
     },
     standardHeaders: true,
     legacyHeaders: true,

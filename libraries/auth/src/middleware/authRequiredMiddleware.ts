@@ -273,6 +273,7 @@ export const AllowRolesMiddleware = (...roles: Role[]) => {
     if (!req.user) {
       throw new AuthorizationError('Unauthorized. User not found in request.');
     }
+
     allowRoles(req.user.role, ...roles);
     next();
   });

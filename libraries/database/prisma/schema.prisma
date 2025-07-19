@@ -8,6 +8,63 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ENUMS
+  enum Role {
+    admin
+    seller
+    shopper
+  }
+
+  enum AccountType {
+    PASSWORD
+    GOOGLE
+  }
+
+
+// SESSION MANAGEMENT
+  model Session {
+    id            String   @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId
+    userId        String@db.ObjectId
+    accountId     String@db.ObjectId // New: reference to Account
+    refreshToken  String   // Store as a hash!
+    userAgent     String
+    ipAddress     String
+    deviceInfo    Json?
+    isActive      Boolean  @default(true)
+    createdAt     DateTime @default(now())
+    updatedAt     DateTime @updatedAt
+    expiresAt     DateTime
+    // Relations
+    user          Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    account       Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([refreshToken])
+    @@index([accountId])
+    
+  }
+
+  model Account {
+    id String @id @default(auto()) @map("_id") @db.ObjectId
+    userId String @db.ObjectId
+    isPrimary Boolean @default(false)
+    type AccountType
+    email   String 
+    password String?
+    // in case of Password then all are NULL 
+    providerId String? // The user's ID from the provider
+    accessToken String? // OAuth access token (optional)
+    refreshToken String? // OAuth refresh token (optional)
+    tokenExpires DateTime? // Expiry of the access token (optional)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+    sessions Session[]
+
+    @@index([userId])
+    @@unique([userId, type])
+  }
+
 
 model EmailOwnership {
   id String @id @default(auto()) @map("_id") @db.ObjectId
@@ -21,49 +78,6 @@ model EmailOwnership {
 
 }
 
-
-model Avatar {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  url String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  file_id String?
-  userId String? @db.ObjectId @unique
-  users Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-enum AccountType {
-  PASSWORD
-  GOOGLE
-}
-
-model Account {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
-  isPrimary Boolean @default(false)
-  type AccountType
-  email   String 
-  password String?
-  // in case of Password then all are NULL 
-  providerId String? // The user's ID from the provider
-  accessToken String? // OAuth access token (optional)
-  refreshToken String? // OAuth refresh token (optional)
-  tokenExpires DateTime? // Expiry of the access token (optional)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessions Session[]
-
-  @@index([userId])
-  @@unique([userId, type])
-}
-
-
-enum Role {
-  admin
-  seller
-  shopper
-}
 model Users {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
@@ -74,26 +88,72 @@ model Users {
   sessions  Session[]
   emailOwnership EmailOwnership[]
   account Account[]
-}
-
-model Session {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId // MongoDB ObjectId
-  userId        String@db.ObjectId
-  accountId     String@db.ObjectId // New: reference to Account
-  refreshToken  String   // Store as a hash!
-  userAgent     String
-  ipAddress     String
-  deviceInfo    Json?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  expiresAt     DateTime
-  // Relations
-  user          Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account       Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([refreshToken])
-  @@index([accountId])
+  
+  reviews       ShopReviews[] 
   
 }
+
+
+model Avatar {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  url String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  file_id String?
+  userId String? @db.ObjectId @unique
+  shopId String? @db.ObjectId @unique
+  users Users? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shops? @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  
+}
+
+
+// Shops Information
+
+model Shops {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  name    String
+  bio      String?
+  category String?
+  avatar Avatar?
+  coverBanner String?
+  address String
+  opening_hours String?
+  website String
+  socialLinks Json[]
+  ratings Float @default(0)
+  sellerId String@db.ObjectId @unique
+  seller Sellers @relation(fields:[sellerId], references: [id], onDelete: Cascade)
+  reviews       ShopReviews[] 
+}
+
+
+model ShopReviews {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId String@db.ObjectId @unique
+  shopId String@db.ObjectId @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  review String?
+  rating Float
+  user Users @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shops @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+}
+
+// Seller Information
+
+model Sellers {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  phone_number String
+  country String
+  stripeId String?
+  shop Shops?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+
+// Product Information
+

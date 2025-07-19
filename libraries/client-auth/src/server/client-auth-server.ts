@@ -48,6 +48,7 @@ export const getAuth = async (
   headersObj['cookie'] = cookieHeader; // Ensure cookies are set
 
   try {
+    console.log(meLink);
     const getMeRes = await axios.getInstance().request({
       method: 'GET',
       url: meLink,
