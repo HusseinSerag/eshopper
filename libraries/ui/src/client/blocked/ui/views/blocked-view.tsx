@@ -1,11 +1,11 @@
 'use client';
 
 import { BlockedInfoResponse } from '@eshopper/shared-types';
-import { useCountdown } from '@eshopper/ui';
+import { useCountdown } from './../../../../hooks/useCountdown';
+
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useAuthenticatedQuery } from '../../../../hooks/useAuthenticatedQuery';
-
+import { useAuthenticatedQuery } from '@eshopper/client-auth/client';
 interface BlockedViewProps {
   isSeller?: boolean;
 }

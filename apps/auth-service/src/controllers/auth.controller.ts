@@ -490,6 +490,7 @@ const VerifyResetPasswordTokenController = asyncErrorHandler(async function (
     email: email,
   });
 });
+
 export {
   SignupController,
   ResendVerificationEmailController,

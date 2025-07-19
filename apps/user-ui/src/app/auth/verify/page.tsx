@@ -10,7 +10,6 @@ import { redirect } from 'next/navigation';
 export default async function VerificationPage() {
   return (
     <ProtectedServerComponent
-      axiosClient={axiosClient}
       redirection={{
         onBlocked: true,
         onInverification: false,

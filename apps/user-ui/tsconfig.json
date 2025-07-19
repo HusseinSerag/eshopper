@@ -37,7 +37,8 @@
     "../../libraries/ui/src/lib/displayDate.ts",
     "src/components/ui/provider-button.tsx",
     "../../libraries/ui/src/components/ui/oauth-error-alert.tsx",
-    "../../libraries/ui/src/components/ui/offline-alert.tsx"
+    "../../libraries/ui/src/components/ui/offline-alert.tsx",
+    "../../libraries/ui/src/components/ui/verification-information.tsx"
   ],
   "exclude": [
     "out-tsc",

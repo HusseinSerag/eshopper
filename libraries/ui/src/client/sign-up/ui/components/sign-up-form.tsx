@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { SignUpSchema } from '../../schemas/sign-up.schema';
-import { Button, OAuthErrorAlert, ProviderButton } from '@eshopper/ui';
+
 import {
   Form,
   FormControl,
@@ -11,8 +11,10 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@eshopper/ui';
-import { Input } from '@eshopper/ui';
+} from '../../../../components/ui/form';
+import { getGoogleLink } from '@eshopper/client-auth';
+
+import { Input } from '../../../../components/ui/input';
 
 import { FaGoogle } from 'react-icons/fa';
 import Link from 'next/link';
@@ -22,8 +24,11 @@ import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import type { UseMutationResult } from '@tanstack/react-query';
-import { useAuthContext } from '../../../../context/useAuthContext';
-import { getGoogleLink } from '../../../../lib/get-google-link';
+import { useAuthContext } from '@eshopper/client-auth/client';
+import { OAuthErrorAlert } from '../../../../components/ui/oauth-error-alert';
+import { Button } from '../../../../components/ui/button';
+import { ProviderButton } from '../../../../components/ui/provider-button';
+
 interface SignUpFormProps {
   useMutation: () => UseMutationResult<
     void,

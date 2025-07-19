@@ -2,7 +2,7 @@
 import { Button } from '@eshopper/ui';
 
 import { ProtectedServerComponent } from '@/utils/protectedComponent';
-import { axiosClient } from '@/utils/axios';
+
 import { Test } from '@/components/test';
 
 export default async function HomePage() {
@@ -12,7 +12,6 @@ export default async function HomePage() {
         onBlocked: true,
         onInverification: true,
       }}
-      axiosClient={axiosClient}
       Component={({ user }) => {
         return (
           <>

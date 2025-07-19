@@ -34,7 +34,10 @@ type ResponseObject =
 // third is user is blocked, so user is null and blocked is true
 // 4th we refreshed and we get user normally
 // 5th we refreshed but user blocked
-export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
+export const getAuth = async (
+  axios: AxiosClient,
+  meLink: string
+): Promise<ResponseObject> => {
   const cookieStore = await cookies();
   const cookieHeader = cookieStore.toString();
   const headersInstance = await headers();
@@ -47,7 +50,7 @@ export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
   try {
     const getMeRes = await axios.getInstance().request({
       method: 'GET',
-      url: '/auth/me',
+      url: meLink,
       headers: headersObj,
     });
     return {
@@ -106,7 +109,7 @@ export const getAuth = async (axios: AxiosClient): Promise<ResponseObject> => {
           // If refresh succeeds, try the original request again
           const retryRes = await axios.getInstance().request({
             method: 'GET',
-            url: '/auth/me',
+            url: meLink,
             headers: {
               cookie: newCookieHeader,
             },

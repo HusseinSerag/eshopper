@@ -8,10 +8,11 @@ export async function prefetchAuthenticatedQuery(
   queryKey: string[],
   url: string,
   freshTokens?: { accessToken: string; refreshToken: string },
+  queryClient?: QueryClient,
   passedHeaders?: Record<string, any>,
   options?: QueryOptions
 ) {
-  const queryClient = new QueryClient();
+  if (!queryClient) queryClient = new QueryClient();
   const authClient = getAuthClient(axiosClient);
   const headersList = await headers();
   let cookieHeader: string;

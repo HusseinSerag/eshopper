@@ -1,5 +1,6 @@
 import { createProtectedComponent } from '@eshopper/client-auth/server';
 import { ShopperUser } from '@eshopper/shared-types';
+import { axiosClient } from './axios';
 
 export const ProtectedServerComponent = createProtectedComponent<ShopperUser>({
   redirectUrls: {
@@ -7,4 +8,6 @@ export const ProtectedServerComponent = createProtectedComponent<ShopperUser>({
     signIn: '/auth/sign-in',
     verify: '/auth/verify',
   },
+  meLink: '/auth/me',
+  axiosClient: axiosClient,
 });

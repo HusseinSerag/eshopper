@@ -1,19 +1,5 @@
 'use client';
 
-import {
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  Input,
-} from '@eshopper/ui';
-
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 
@@ -23,7 +9,19 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import type { UseMutationResult } from '@tanstack/react-query';
 import { NewPasswordSchema } from '../../../schemas';
-
+import { Card } from '../../../../components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '../../../../components/ui/form';
+import { Button } from '../../../../components/ui/button';
+import { Checkbox } from '../../../../components/ui/checkbox';
+import { Input } from '../../../../components/ui/input';
 interface ResetPasswordViewProps {
   useMutation: () => UseMutationResult<
     unknown,

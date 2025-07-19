@@ -70,6 +70,9 @@ export async function SignupService(
     },
   });
 
+  if (role === 'seller') {
+    await redisProvider.set(`onboarding:${user.id}`, '1');
+  }
   return { email, userId: user.id, accountId: user.account[0].id };
 }
 
@@ -278,6 +281,7 @@ export async function verifyEmail(account: Account, otp: string) {
 
     // Only cleanup Redis after successful DB update
     await Promise.all([
+      redisProvider.set(`onboarding:${account.userId}`, '2'),
       redisProvider.delete(`otp:${account.email}`),
       redisProvider.delete(`invalid_otp_count:${account.email}`),
       redisProvider.delete(`otp_cooldown:${account.email}`),

@@ -27,12 +27,13 @@ export interface FactoryConfig<T extends BaseUser> {
   redirectUrls: RedirectUrls;
   defaultRedirection?: Redirection;
   redirectOn?: Array<RedirectOn<T>>;
+  meLink: string;
+  axiosClient: AxiosClient;
 }
 
 export interface ProtectedServerComponentHOCProps<T extends BaseUser> {
   Component: React.ComponentType<{ user?: T; [key: string]: any }>;
   handleUnauthenticated?: () => void;
-  axiosClient: AxiosClient;
   redirection?: Redirection;
   [key: string]: any; // to allow arbitrary props
 }
@@ -69,6 +70,8 @@ export function createProtectedComponent<T extends BaseUser>(
     redirectUrls,
     defaultRedirection = { onBlocked: true, onInverification: true },
     redirectOn = null,
+    meLink,
+    axiosClient,
   } = config;
   let callbacks: Array<RedirectOn<T>> | null;
   if (redirectOn) {
@@ -77,12 +80,11 @@ export function createProtectedComponent<T extends BaseUser>(
 
   return async function ProtectedServerComponent({
     Component,
-    axiosClient,
     handleUnauthenticated = () => redirect(redirectUrls.signIn),
     redirection = defaultRedirection,
     ...rest
   }: ProtectedServerComponentHOCProps<T>) {
-    const data = await getAuth(axiosClient);
+    const data = await getAuth(axiosClient, meLink);
 
     if (data.success === false) {
       handleUnauthenticated();

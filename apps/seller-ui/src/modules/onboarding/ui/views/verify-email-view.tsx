@@ -16,9 +16,9 @@ import {
 } from '@eshopper/ui';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@eshopper/ui';
 import { useVerify } from '../../hooks/useVerify';
-
-import { useResendVerificationEmail } from '../../hooks/useResendVerifyEmail';
+import { useResendVerificationEmail } from '@/modules/sign-up/hooks/useResendVerifyEmail';
 import { VerificationInformation } from '../components/verification-information';
+import { useAuth } from '@eshopper/client-auth/client';
 
 const FormSchema = z.object({
   pin: z.string().min(6, {
@@ -29,6 +29,7 @@ const FormSchema = z.object({
 export function VerifyEmailView() {
   // see if we either
   const verifyMutation = useVerify();
+
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -65,7 +66,7 @@ export function VerifyEmailView() {
   }
 
   return (
-    <div className="px-4 py-8  flex items-center justify-center">
+    <div className="  flex items-center justify-center">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}

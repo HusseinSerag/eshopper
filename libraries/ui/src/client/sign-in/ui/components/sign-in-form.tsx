@@ -3,18 +3,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import { SignInSchema } from '../../schemas/sign-in.schema';
-import { Button, Dialog, DialogTrigger } from '@eshopper/ui';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  ProviderButton,
-  OAuthErrorAlert,
-} from '@eshopper/ui';
-import { Input } from '@eshopper/ui';
 
 import { FaGoogle } from 'react-icons/fa';
 import Link from 'next/link';
@@ -24,10 +12,23 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 import { ResetPasswordForm } from './reset-email-form';
-import { getGoogleLink } from '../../../../lib/get-google-link';
-import { useLogin } from '../../../../hooks/useLogin';
-import { useAuthContext } from '../../../../context/useAuthContext';
+
 import { UseMutationResult } from '@tanstack/react-query';
+import { useAuthContext, useLogin } from '@eshopper/client-auth/client';
+import { getGoogleLink } from '@eshopper/client-auth';
+import { Dialog, DialogTrigger } from '../../../../components/ui/dialog';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '../../../../components/ui/form';
+import { Input } from '../../../../components/ui/input';
+import { OAuthErrorAlert } from '../../../../components/ui/oauth-error-alert';
+import { Button } from '../../../../components/ui/button';
+import { ProviderButton } from '../../../../components/ui/provider-button';
 
 interface SignInFormProps {
   useMutation: () => UseMutationResult<

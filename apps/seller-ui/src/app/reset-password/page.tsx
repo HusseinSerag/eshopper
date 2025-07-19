@@ -1,7 +1,7 @@
 import { useSendNewPasswordRequest } from '@/modules/reset-password/hooks/useSendPassword';
 import { axiosClient } from '@/utils/axios';
 import { getAuthClient, RequestError } from '@eshopper/client-auth';
-import { ResetPasswordView } from '@eshopper/client-auth/client';
+import { ResetPasswordView } from '@eshopper/ui';
 import { ErrorComponent } from '@eshopper/ui';
 
 interface Props {

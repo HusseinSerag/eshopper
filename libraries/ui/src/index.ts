@@ -14,3 +14,6 @@ export * from './components/ui/checkbox';
 export * from './components/ui/oauth-error-alert';
 export * from './components/ui/provider-button';
 export * from './components/ui/offline-alert';
+export * from './components/ui/verification-information';
+export * from './components/ui/loader';
+export * from './client';

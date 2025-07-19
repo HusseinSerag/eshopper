@@ -1,6 +1,6 @@
 import type { Response, Request } from 'express';
 import { nanoid } from 'nanoid';
-import { config, dbProvider, redisProvider } from '../provider';
+import { config, dbProvider, kafkaProvider, redisProvider } from '../provider';
 import type { IRequest } from '@eshopper/global-configuration';
 import { asyncErrorHandler, BadRequestError } from '@eshopper/error-handler';
 import { Redis } from '@eshopper/redis';
@@ -412,6 +412,19 @@ export const GoogleOAuthCallbackController = async (
       logger.info('New user created via Google OAuth:', {
         userId,
         email: googleUser.email,
+      });
+      if (newUser.role === 'seller') {
+        await redisProvider.set(`onboarding:${userId}`, '2');
+      }
+      await kafkaProvider.sendMessage({
+        topic: 'notifications',
+        key: googleUser.email,
+        value: JSON.stringify({
+          type: 'EMAIL',
+          channel: 'WELCOME_EMAIL',
+          email: googleUser.email,
+          userName: newUser.name,
+        }),
       });
     } else if (mode === 'login') {
       if (!emailOwnership) {

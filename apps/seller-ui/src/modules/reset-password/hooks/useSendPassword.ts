@@ -1,12 +1,10 @@
 'use client';
-import {
-  NewPasswordSchema,
-  useAuthContext,
-} from '@eshopper/client-auth/client';
+import { useAuthContext } from '@eshopper/client-auth/client';
 import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
 
 import { useSearchParams } from 'next/navigation';
+import { NewPasswordSchema } from '@eshopper/ui';
 
 export function useSendNewPasswordRequest() {
   const context = useAuthContext();

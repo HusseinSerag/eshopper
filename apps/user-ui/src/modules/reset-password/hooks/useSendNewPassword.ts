@@ -2,7 +2,7 @@
 import { useAuthContext } from '@eshopper/client-auth/client';
 import { useMutation } from '@tanstack/react-query';
 import z from 'zod';
-import { NewPasswordSchema } from '@eshopper/client-auth/client';
+import { NewPasswordSchema } from '@eshopper/ui';
 import { useSearchParams } from 'next/navigation';
 
 export function useSendNewPasswordRequest() {

@@ -1,19 +1,22 @@
 import {
-  Button,
-  DialogClose,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '../../../../components/ui/dialog';
+import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-  Input,
-} from '@eshopper/ui';
+} from '../../../../components/ui/form';
+import { Input } from '../../../../components/ui/input';
+
+import { Button } from '../../../../components/ui/button';
 
 import { useForm } from 'react-hook-form';
 import { ResetPasswordSchema } from '../../../schemas';

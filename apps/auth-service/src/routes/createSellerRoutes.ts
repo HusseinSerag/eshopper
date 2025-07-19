@@ -25,6 +25,7 @@ import {
   VerifyEmailController,
   VerifyResetPasswordTokenController,
 } from '../controllers/auth.controller';
+import { getOnboardingInfo } from '../controllers/seller-auth.controller';
 
 export function createSellerRoutes(
   tokenProvider: TokenProvider,
@@ -120,5 +121,14 @@ export function createSellerRoutes(
     ResendVerificationEmailController
   );
 
+  router.get(
+    '/onboarding-info',
+    authRequiredMiddleware(tokenProvider, dbProvider),
+    AllowRolesMiddleware('seller'),
+    checkAccountStatusMiddleware(redisProvider, dbProvider, {
+      checkEmailVerification: false,
+    }),
+    getOnboardingInfo
+  );
   return router;
 }
