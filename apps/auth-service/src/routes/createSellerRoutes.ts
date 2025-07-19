@@ -15,7 +15,6 @@ import {
 } from '../schemas/auth.schema';
 import {
   getBlockedInfoController,
-  getMeController,
   getVerificationInfo,
   LogAllOutController,
   LogoutController,
@@ -25,7 +24,10 @@ import {
   VerifyEmailController,
   VerifyResetPasswordTokenController,
 } from '../controllers/auth.controller';
-import { getOnboardingInfo } from '../controllers/seller-auth.controller';
+import {
+  getMeSellerController,
+  getOnboardingInfo,
+} from '../controllers/seller-auth.controller';
 
 export function createSellerRoutes(
   tokenProvider: TokenProvider,
@@ -88,7 +90,7 @@ export function createSellerRoutes(
       checkEmailVerification: false,
       checkBlocked: true,
     }),
-    getMeController
+    getMeSellerController
   );
 
   router.get(

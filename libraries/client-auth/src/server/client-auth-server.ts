@@ -1,5 +1,5 @@
 import { AxiosClient } from '@eshopper/utils/client';
-import { ErrorResponse, ShopperUser } from '@eshopper/shared-types';
+import { BaseUser, ErrorResponse, ShopperUser } from '@eshopper/shared-types';
 import { AxiosError } from 'axios';
 import { cookies, headers } from 'next/headers';
 
@@ -48,7 +48,6 @@ export const getAuth = async (
   headersObj['cookie'] = cookieHeader; // Ensure cookies are set
 
   try {
-    console.log(meLink);
     const getMeRes = await axios.getInstance().request({
       method: 'GET',
       url: meLink,
@@ -57,7 +56,7 @@ export const getAuth = async (
     return {
       success: true,
       refreshed: false,
-      user: (getMeRes.data as { user: ShopperUser }).user,
+      user: (getMeRes.data as { user: BaseUser }).user,
     };
   } catch (error) {
     if (error instanceof AxiosError) {

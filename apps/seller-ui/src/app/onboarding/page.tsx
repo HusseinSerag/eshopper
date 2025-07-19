@@ -11,6 +11,7 @@ import {
 export default function OnboardingPage() {
   return (
     <ProtectedServerComponent
+      currentUrl="/onboarding"
       redirection={{
         onBlocked: true,
         onInverification: false,

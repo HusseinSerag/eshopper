@@ -23,7 +23,12 @@ export type BaseUser = {
   role: OriginSite;
 };
 export interface ShopperUser extends BaseUser {}
-export interface SellerUser extends BaseUser {}
+export interface SellerUser extends BaseUser {
+  seller?: {
+    id: string;
+    stripeId?: string;
+  };
+}
 
 // Account types
 export enum AccountType {

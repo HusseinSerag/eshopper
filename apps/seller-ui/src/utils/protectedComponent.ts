@@ -12,7 +12,11 @@ export const ProtectedServerComponent = createProtectedComponent<SellerUser>({
     {
       priority: 1,
       callback(user) {
-        return user.emailOwnership.some((email) => !email.isVerified);
+        return (
+          user.emailOwnership.some((email) => !email.isVerified) ||
+          !user.seller ||
+          !user.seller.stripeId
+        );
       },
       redirectTo: '/onboarding',
     },

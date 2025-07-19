@@ -35,6 +35,7 @@ export interface ProtectedServerComponentHOCProps<T extends BaseUser> {
   Component: React.ComponentType<{ user?: T; [key: string]: any }>;
   handleUnauthenticated?: () => void;
   redirection?: Redirection;
+  currentUrl?: string;
   [key: string]: any; // to allow arbitrary props
 }
 function createCookies(accessToken: string, refreshToken: string) {
@@ -82,6 +83,7 @@ export function createProtectedComponent<T extends BaseUser>(
     Component,
     handleUnauthenticated = () => redirect(redirectUrls.signIn),
     redirection = defaultRedirection,
+    currentUrl,
     ...rest
   }: ProtectedServerComponentHOCProps<T>) {
     const data = await getAuth(axiosClient, meLink);
@@ -132,6 +134,7 @@ export function createProtectedComponent<T extends BaseUser>(
       }
       if (callbacks) {
         for (const { callback, redirectTo } of callbacks) {
+          if (currentUrl && currentUrl === redirectTo) continue;
           const response = callback(data.user as T); // must return true
           if (response) {
             return (
@@ -163,6 +166,7 @@ export function createProtectedComponent<T extends BaseUser>(
     }
     if (callbacks) {
       for (const { callback, redirectTo } of callbacks) {
+        if (currentUrl && currentUrl === redirectTo) continue;
         const response = callback(data.user as T);
         if (response) {
           redirect(redirectTo);
