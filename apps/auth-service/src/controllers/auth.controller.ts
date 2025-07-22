@@ -71,7 +71,7 @@ export const LoginController = asyncErrorHandler(
       checkEmailVerification: false,
     });
     const tokens = await tokenProvider.generateTokens({
-      data: { userId: account.userId, accountId: account.id },
+      data: { userId: account.userId, accountId: account.id, role: role },
       options: {},
     });
 
@@ -122,7 +122,7 @@ const SignupController = asyncErrorHandler(
 
     sendOtpFirstTime(email);
     const tokens = await tokenProvider.generateTokens({
-      data: { userId: userId, accountId: accountId },
+      data: { userId: userId, accountId: accountId, role: body.role },
       options: {},
     });
 

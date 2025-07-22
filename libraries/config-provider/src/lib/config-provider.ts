@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
-import { z } from 'zod';
+import { z, ZodError } from 'zod';
 import { AppError, StatusCode } from '@eshopper/error-handler';
+import { logger } from '@eshopper/logger';
 //import path from 'path';
 
 export class ConfigProvider<T extends z.ZodSchema> {
@@ -19,6 +20,13 @@ export class ConfigProvider<T extends z.ZodSchema> {
       }
       this._config = Object.freeze(parsed.data);
     } catch (e: unknown) {
+      if (e instanceof ZodError) {
+        logger.info('Error adding enviroment variables', {
+          error: e.errors.forEach((error) => error.message),
+          errorStack: e.stack,
+          msg: e.flatten(),
+        });
+      }
       process.exit(1);
     }
   }

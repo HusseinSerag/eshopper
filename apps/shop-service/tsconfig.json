@@ -1,0 +1,37 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "files": [],
+  "include": [],
+  "references": [
+    {
+      "path": "../../libraries/middleware"
+    },
+    {
+      "path": "../../libraries/auth"
+    },
+    {
+      "path": "../../libraries/kafka"
+    },
+    {
+      "path": "../../libraries/redis"
+    },
+    {
+      "path": "../../libraries/database"
+    },
+    {
+      "path": "../../libraries/config-provider"
+    },
+    {
+      "path": "../../libraries/shared-types"
+    },
+    {
+      "path": "../../libraries/global-configuration"
+    },
+    {
+      "path": "../../libraries/error-handler"
+    },
+    {
+      "path": "./tsconfig.app.json"
+    }
+  ]
+}

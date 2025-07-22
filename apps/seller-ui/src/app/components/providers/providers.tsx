@@ -14,6 +14,7 @@ import {
 } from '@eshopper/client-auth';
 import { AuthProviderWrapper } from './authProviderWrapper';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { GeoProvider } from '@eshopper/ui';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -53,7 +54,9 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProviderWrapper>{children}</AuthProviderWrapper>
+      <GeoProvider>
+        <AuthProviderWrapper>{children}</AuthProviderWrapper>
+      </GeoProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   );

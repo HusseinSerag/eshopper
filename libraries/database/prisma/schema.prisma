@@ -114,17 +114,22 @@ model Shops {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   name    String
   bio      String?
-  category String?
+ 
   avatar Avatar?
   coverBanner String?
   address String
-  opening_hours String?
+  opening_hours Json?
   website String
   socialLinks Json[]
   ratings Float @default(0)
   sellerId String@db.ObjectId @unique
+  categoryId String@db.ObjectId
   seller Sellers @relation(fields:[sellerId], references: [id], onDelete: Cascade)
+  category Categories @relation(fields:[sellerId], references: [id])
+  otherCategory String?
   reviews       ShopReviews[] 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 
@@ -145,7 +150,8 @@ model ShopReviews {
 
 model Sellers {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  phone_number String
+  phone_number String? @unique
+  isPhoneVerified Boolean @default(false)
   country String
   stripeId String?
   shop Shops?
@@ -159,3 +165,9 @@ model Sellers {
 
 // Product Information
 
+model Categories {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  value   String
+  label   String
+  shop  Shops[]
+}

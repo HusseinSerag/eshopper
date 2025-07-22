@@ -1,7 +1,10 @@
 import { OnBoardingView } from '@/modules/onboarding/ui/views/onboarding-view';
 import { axiosClient } from '@/utils/axios';
 import { ProtectedServerComponent } from '@/utils/protectedComponent';
-import { prefetchAuthenticatedQuery } from '@eshopper/client-auth/server';
+import {
+  prefetchAuthenticatedQuery,
+  prefetchQuery,
+} from '@eshopper/client-auth/server';
 import {
   dehydrate,
   HydrationBoundary,
@@ -16,12 +19,17 @@ export default function OnboardingPage() {
         onBlocked: true,
         onInverification: false,
       }}
-      Component={async ({ freshTokens }) => {
+      Component={async ({ freshTokens, user }) => {
         const queryClient = new QueryClient();
+        queryClient.setQueryData(['auth', 'user'], {
+          user,
+          success: true,
+        });
+
         await prefetchAuthenticatedQuery(
           axiosClient,
           ['onboarding-info'],
-          '/auth/seller/onboarding-info',
+          '/shop/onboarding-info',
           freshTokens,
           queryClient
         );
@@ -30,6 +38,27 @@ export default function OnboardingPage() {
           ['verification'],
           '/auth/seller/verification-info',
           freshTokens,
+          queryClient
+        );
+        await prefetchAuthenticatedQuery(
+          axiosClient,
+          ['shop-info'],
+          '/shop',
+          freshTokens,
+          queryClient
+        );
+
+        await prefetchAuthenticatedQuery(
+          axiosClient,
+          ['phone-number-verification-info'],
+          '/auth/seller/phone-verification-info',
+          freshTokens,
+          queryClient
+        );
+        await prefetchQuery(
+          axiosClient,
+          ['categories'],
+          '/shop/categories',
           queryClient
         );
         return (

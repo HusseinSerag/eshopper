@@ -4,8 +4,13 @@ import { Button } from './button';
 interface Props {
   data: VerificationInfoResponse;
   onResend(): void;
+  title?: string;
 }
-export function VerificationInfoComponent({ data, onResend }: Props) {
+export function VerificationInfoComponent({
+  data,
+  onResend,
+  title = 'Email',
+}: Props) {
   const { cooldown, minutes, seconds } = useCountdown(data.cooldown);
 
   const { maxResendRequests, maxInvalidOTP, newRequestWindow } = data;
@@ -13,14 +18,16 @@ export function VerificationInfoComponent({ data, onResend }: Props) {
   const triesLeft = maxInvalidOTP - data.invalidOtpCount;
   return (
     <div>
-      {cooldown > 0 && maxResendRequests !== data.numberOfRequestsPerWindow && (
-        <div className="text-sm text-foreground">
-          Please wait {minutes}:{seconds} before requesting another OTP
-        </div>
-      )}
+      {cooldown > 0 &&
+        maxResendRequests !== data.numberOfRequestsPerWindow &&
+        !(maxResendRequests <= data.numberOfRequestsPerWindow) && (
+          <div className="text-sm text-foreground">
+            Please wait {minutes}:{seconds} before requesting another OTP
+          </div>
+        )}
       {cooldown <= 0 && data.numberOfRequestsPerWindow < maxResendRequests && (
         <Button onClick={onResend} type="button" variant="link">
-          Resend Email
+          Resend {title}
         </Button>
       )}
       {maxResendRequests <= data.numberOfRequestsPerWindow && (

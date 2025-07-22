@@ -484,6 +484,13 @@ export const GoogleOAuthCallbackController = async (
     // --- ENSURE ONLY ONE GOOGLE ACCOUNT PER USER ---
     let account = await dbProvider.getPrisma().account.findFirst({
       where: { userId, type: 'GOOGLE' },
+      include: {
+        user: {
+          select: {
+            role: true,
+          },
+        },
+      },
     });
     if (account) {
       await dbProvider.getPrisma().account.update({
@@ -496,6 +503,13 @@ export const GoogleOAuthCallbackController = async (
           tokenExpires: tokens.expires_in
             ? new Date(Date.now() + tokens.expires_in * 1000)
             : null,
+        },
+        include: {
+          user: {
+            select: {
+              role: true,
+            },
+          },
         },
       });
     } else {
@@ -511,12 +525,19 @@ export const GoogleOAuthCallbackController = async (
             ? new Date(Date.now() + tokens.expires_in * 1000)
             : null,
         },
+        include: {
+          user: {
+            select: {
+              role: true,
+            },
+          },
+        },
       });
     }
 
     // --- GENERATE TOKENS, CREATE SESSION, SET COOKIES (ONLY FOR LOGIN/SIGNUP) ---
     const tokenPair = await tokenProvider.generateTokens({
-      data: { userId, accountId: account.id },
+      data: { userId, accountId: account.id, role: account.user.role },
       options: {},
     });
     await saveTokensToDatabase(

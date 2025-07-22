@@ -2,6 +2,7 @@ import { KafkaProvider } from '@eshopper/kafka';
 import { EmailService } from '../services/email.service';
 import { EachMessagePayload } from 'kafkajs';
 import { logger } from '@eshopper/logger';
+import { SMSService } from '../services/sms.service';
 
 export interface NotificationMessage {
   type: 'EMAIL' | 'SMS' | 'PUSH';
@@ -9,7 +10,8 @@ export interface NotificationMessage {
     | 'OTP_VERIFICATION'
     | 'PASSWORD_RESET'
     | 'WELCOME_EMAIL'
-    | 'PASSWORD_CHANGED';
+    | 'PASSWORD_CHANGED'
+    | 'SELLER_VERIFY_PHONE_NUMBER';
   email?: string;
   phone?: string;
   userId?: string;
@@ -17,15 +19,23 @@ export interface NotificationMessage {
   userName?: string;
   resetUrl?: string;
   data?: Record<string, any>;
+  phone_number: string;
+  body: string;
 }
 
 export class NotificationConsumer {
   private kafkaProvider: KafkaProvider;
   private emailService: EmailService;
+  private smsService: SMSService;
 
-  constructor(kafkaProvider: KafkaProvider, emailService: EmailService) {
+  constructor(
+    kafkaProvider: KafkaProvider,
+    emailService: EmailService,
+    smsService: SMSService
+  ) {
     this.kafkaProvider = kafkaProvider;
     this.emailService = emailService;
+    this.smsService = smsService;
   }
 
   async start(): Promise<void> {
@@ -113,11 +123,34 @@ export class NotificationConsumer {
     message: NotificationMessage
   ): Promise<void> {
     // TODO: Implement SMS service
-    logger.info('[NOTIFICATION] SMS notification not implemented yet:', {
-      message,
-    });
+    if (!message.phone_number) {
+      logger.error('Phone number missing');
+      return;
+    }
+    switch (message.channel) {
+      case 'SELLER_VERIFY_PHONE_NUMBER':
+        await this.handleSellerPhoneVerification(message);
+        break;
+      default:
+        logger.warn('[NOTIFICATION] Unknown sms channel:', {
+          channel: message.channel,
+        });
+    }
   }
 
+  private async handleSellerPhoneVerification(message: NotificationMessage) {
+    try {
+      await this.smsService.sendSMS({
+        body: message.body,
+        to: message.phone_number,
+      });
+    } catch (error) {
+      logger.error(
+        `[NOTIFICATION] failed to send OTP to verify seller phone number `,
+        { error }
+      );
+    }
+  }
   private async handlePushNotification(
     message: NotificationMessage
   ): Promise<void> {

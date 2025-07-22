@@ -74,6 +74,8 @@ app.use(
     preserveHostHdr: true,
   })
 );
+
+app.use('/shop', proxy(config.get('SHOP_SERVICE')));
 app.use('/notification', proxy(config.get('NOTIFICATION_SERVICE')));
 
 app.use(NotFoundHandler);

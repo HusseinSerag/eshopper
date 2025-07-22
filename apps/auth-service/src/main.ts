@@ -1,4 +1,4 @@
-import { dbProvider, redisProvider, kafkaProvider } from './provider';
+import { dbProvider, redisProvider, kafkaProvider, config } from './provider';
 import express from 'express';
 import {
   NotFoundHandler,
@@ -8,9 +8,7 @@ import {
 } from '@eshopper/error-handler';
 import cors from 'cors';
 import { setupApp } from '@eshopper/global-configuration';
-import { ConfigProvider } from '@eshopper/config-provider';
-import { ConfigSchema } from './config/config.schema';
-export const config = new ConfigProvider(ConfigSchema);
+
 import { createRoutes } from './routes/auth.routes';
 import { SessionCleanupJob } from './jobs/deleteSessionJobs';
 import { UnverifiedUserCleanupJob } from './jobs/deleteUserJob';
@@ -85,3 +83,5 @@ startApp().then(() => {
   unverifiedUserCleanupJob.start();
   expiredSessionCleanupJob.start();
 });
+
+export { config };

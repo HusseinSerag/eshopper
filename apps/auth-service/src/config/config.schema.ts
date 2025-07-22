@@ -79,4 +79,14 @@ export const ConfigSchema = z.object({
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
   GOOGLE_OAUTH_REDIRECT_URL: z.string(),
+  PHONE_NUMBER_STEP: z.string().transform((val) => parseInt(val, 10)),
+  PHONE_NUMBER_BASE_TIME: z.string().transform((val) => parseInt(val, 10)),
+  MAX_INVALID_PHONE_NUMBER_OTP: z
+    .string()
+    .transform((val) => parseInt(val, 10)),
+  MAX_REQUEST_PHONE_NUMBER: z.string().transform((val) => parseInt(val, 10)),
+  MAX_INVALID_PHONE_NUMBER_WINDOW: z
+    .string()
+    .transform((val) => parseInt(val, 10)),
+  MAX_REQUEST_WINDOW: z.string().transform((val) => parseInt(val, 10)),
 });

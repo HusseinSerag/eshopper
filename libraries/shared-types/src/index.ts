@@ -27,6 +27,8 @@ export interface SellerUser extends BaseUser {
   seller?: {
     id: string;
     stripeId?: string;
+    phone_number?: string;
+    isPhoneVerified: boolean;
   };
 }
 
@@ -98,4 +100,75 @@ export type BlockedInfoResponse = {
 export type OAuthModes = 'link' | 'login' | 'signup';
 export type OriginSite = 'seller' | 'admin' | 'shopper';
 // Re-export utilities
+
+export const daysOfTheWeek = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+] as const;
+
+export type Category = {
+  id: string;
+  value: string;
+  label: string;
+};
+
+export type Shop = {
+  id: string;
+  name: string;
+  bio?: string | null;
+  avatar?: any | null; // You can type this more strictly if you want
+  coverBanner?: string | null;
+  address: string;
+  opening_hours?: OpeningHours[] | null;
+  website: string;
+  socialLinks: any[]; // You can type this more strictly if you want
+  ratings: number;
+  sellerId: string;
+  categoryId: string;
+  otherCategory?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type SellerWithShop = {
+  id: string;
+  phone_number?: string | null;
+  country: string;
+  stripeId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  shop?: Shop | null;
+} | null;
+export type OpeningHours = {
+  day:
+    | 'Monday'
+    | 'Tuesday'
+    | 'Wednesday'
+    | 'Thursday'
+    | 'Friday'
+    | 'Saturday'
+    | 'Sunday';
+  open: string | null;
+  close: string | null;
+};
+
+export type PhoneNumberVerificationInfo = {
+  userCooldown: number;
+  numberCooldown: number;
+  tries: number;
+  maxTries: number;
+  number: string;
+  maxRequest: number;
+  windowForInvalidOtps: number;
+  windowForRequests: number;
+  numberOfRequestsPerWindow: number;
+};
 export * from './utils.js';
+
+export * from './countries.js';

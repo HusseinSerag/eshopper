@@ -26,7 +26,7 @@ export class TokenProvider {
       data,
       options: {
         ...options,
-        expiresIn: type === 'refresh' ? '7d' : '1h',
+        expiresIn: type === 'refresh' ? '7d' : '15m',
       },
       type: this.typeToTokenType(type),
     });

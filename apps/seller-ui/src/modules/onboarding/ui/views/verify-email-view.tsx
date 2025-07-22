@@ -18,7 +18,6 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from '@eshopper/ui';
 import { useVerify } from '../../hooks/useVerify';
 import { useResendVerificationEmail } from '@/modules/sign-up/hooks/useResendVerifyEmail';
 import { VerificationInformation } from '../components/verification-information';
-import { useAuth } from '@eshopper/client-auth/client';
 
 const FormSchema = z.object({
   pin: z.string().min(6, {

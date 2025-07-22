@@ -6,6 +6,7 @@ import { KafkaProvider } from '@eshopper/kafka';
 import { ConfigSchema } from './config/config.schema';
 
 export const config = new ConfigProvider(ConfigSchema);
+
 export const dbProvider = new DatabaseProvider(config.get('DATABASE_URL'));
 export const redisProvider = new Redis({
   type: 'url',

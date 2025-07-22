@@ -25,9 +25,15 @@ import {
   VerifyResetPasswordTokenController,
 } from '../controllers/auth.controller';
 import {
+  confirmPhoneNumber,
   getMeSellerController,
-  getOnboardingInfo,
+  getPhoneVerificationInfo,
+  phoneNumberVerificationRequest,
 } from '../controllers/seller-auth.controller';
+import {
+  ConfirmOTPSchema,
+  EnterPhoneNumberSchema,
+} from '../schemas/seller-auth.schema';
 
 export function createSellerRoutes(
   tokenProvider: TokenProvider,
@@ -123,14 +129,29 @@ export function createSellerRoutes(
     ResendVerificationEmailController
   );
 
-  router.get(
-    '/onboarding-info',
+  router.post(
+    '/request-phone-otp',
     authRequiredMiddleware(tokenProvider, dbProvider),
     AllowRolesMiddleware('seller'),
-    checkAccountStatusMiddleware(redisProvider, dbProvider, {
-      checkEmailVerification: false,
-    }),
-    getOnboardingInfo
+    checkAccountStatusMiddleware(redisProvider, dbProvider),
+    validationMiddleware(EnterPhoneNumberSchema),
+    phoneNumberVerificationRequest
   );
+  router.get(
+    '/phone-verification-info',
+    authRequiredMiddleware(tokenProvider, dbProvider),
+    AllowRolesMiddleware('seller'),
+    checkAccountStatusMiddleware(redisProvider, dbProvider),
+    getPhoneVerificationInfo
+  );
+  router.post(
+    '/confirm-phone-otp',
+    authRequiredMiddleware(tokenProvider, dbProvider),
+    AllowRolesMiddleware('seller'),
+    checkAccountStatusMiddleware(redisProvider, dbProvider),
+    validationMiddleware(ConfirmOTPSchema),
+    confirmPhoneNumber
+  );
+
   return router;
 }

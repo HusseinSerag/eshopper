@@ -45,7 +45,7 @@ export function StepperProgress({
 
           {/* Connecting Line */}
           {index < steps.length - 1 && (
-            <div className="relative w-16 h-1 mx-2">
+            <div className={'relative w-8 sm:w-14 h-1 mx-2'}>
               {/* Background line */}
               <div className="absolute inset-0 bg-gray-200 rounded-full" />
               {/* Progress line */}

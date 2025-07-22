@@ -1,23 +1,23 @@
 'use client';
 
-import { useAuth, useAuthenticatedQuery } from '@eshopper/client-auth/client';
-import { Button, Card, Loader } from '@eshopper/ui';
+import { useAuthenticatedQuery, useSeller } from '@eshopper/client-auth/client';
+import { Card, Loader } from '@eshopper/ui';
 
-import { VerifyEmailView } from './verify-email-view';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StepperProgress } from '../components/stepperProgress';
 import { StepComponent } from '../components/step-component';
 
 export function OnBoardingView() {
   const { data } = useAuthenticatedQuery<{ onboardingStep: number }>(
     ['onboarding-info'],
-    '/auth/seller/onboarding-info'
+    '/shop/onboarding-info'
   );
-  const { isLoading } = useAuth();
+
+  const { isLoading } = useSeller();
 
   if (!data || isLoading)
     return (
-      <div className="w-full min-h-svh flex items-center justify-center">
+      <div className="w-full min-h-svh flex items-center  justify-center">
         <Loader />
       </div>
     );
@@ -30,10 +30,16 @@ function Component({ steps }: { steps: number }) {
   const setSteps = (steps: number) => {
     setCurrentSteps(steps);
   };
+  useEffect(
+    function () {
+      setSteps(steps);
+    },
+    [steps]
+  );
   return (
-    <div className="flex px-4 gap-8 py-8 min-h-svh flex-col items-center justify-center">
+    <div className="flex px-4 gap-8 py-8  flex-col items-center">
       <div className="flex">
-        <StepperProgress currentStep={currentSteps} totalSteps={3} />
+        <StepperProgress currentStep={currentSteps} totalSteps={4} />
       </div>
       <Card className="max-w-md border-2 w-full">
         <StepComponent setSteps={setSteps} step={currentSteps} />

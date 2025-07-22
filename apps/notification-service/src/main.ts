@@ -4,6 +4,7 @@ import { KafkaProvider } from '@eshopper/kafka';
 import { EmailService } from './services/email.service';
 import { NotificationConsumer } from './consumers/notification.consumer';
 import { logger } from '@eshopper/logger';
+import { SMSService } from './services/sms.service';
 
 // Initialize configuration
 export const config = new ConfigProvider(ConfigSchema);
@@ -25,10 +26,12 @@ export const emailService = new EmailService({
   service: config.get('EMAIL_SERVICE'),
 });
 
+export const smsProvider = new SMSService();
 // Initialize notification consumer
 export const notificationConsumer = new NotificationConsumer(
   kafkaProvider,
-  emailService
+  emailService,
+  smsProvider
 );
 
 async function startApp() {

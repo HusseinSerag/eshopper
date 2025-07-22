@@ -24,4 +24,7 @@ export const ConfigSchema = z.object({
   EMAIL_FROM_NAME: z.string(),
 
   EMAIL_SERVICE: z.string(),
+  TWILIO_ACCOUNT_SID: z.string(),
+  TWILIO_AUTH_TOKEN: z.string(),
+  PHONE_NUMBER: z.string(),
 });

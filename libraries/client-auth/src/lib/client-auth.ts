@@ -124,9 +124,10 @@ export class AuthenticateHttpClient {
       }
     }
   }
-  private async handleTokenRefresh() {
+  private async handleTokenRefresh(): Promise<void> {
     if (this.isRefreshing) {
-      return this.refreshPromise;
+      // If already refreshing, just return the existing promise
+      return this.refreshPromise!;
     }
     this.isRefreshing = true;
     this.refreshPromise = this.doRefresh();
@@ -155,11 +156,12 @@ export class AuthenticateHttpClient {
       return await this.executeRequest(config);
     } catch (error) {
       if (error instanceof AuthError && error.message === 'REFRESH_NEEDED') {
-        // refresh
-
-        await this.handleTokenRefresh();
-        //execute again
-        return this.executeRequest(config);
+        if (!this.refreshPromise) {
+          this.refreshPromise = this.handleTokenRefresh();
+        }
+        const queuedRequest = this.enqueueRequest(config);
+        await this.refreshPromise;
+        return queuedRequest;
       } else {
         throw error;
       }

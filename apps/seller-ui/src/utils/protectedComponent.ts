@@ -15,6 +15,7 @@ export const ProtectedServerComponent = createProtectedComponent<SellerUser>({
         return (
           user.emailOwnership.some((email) => !email.isVerified) ||
           !user.seller ||
+          !user.seller.isPhoneVerified ||
           !user.seller.stripeId
         );
       },

@@ -11,6 +11,9 @@
   "include": ["src/**/*.ts"],
   "references": [
     {
+      "path": "../logger/tsconfig.lib.json"
+    },
+    {
       "path": "../error-handler/tsconfig.lib.json"
     }
   ]

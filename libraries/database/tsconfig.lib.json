@@ -8,6 +8,6 @@
     "emitDeclarationOnly": false,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/seed-categories.js"],
   "references": []
 }
