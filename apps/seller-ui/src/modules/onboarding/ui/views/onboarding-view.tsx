@@ -15,13 +15,14 @@ export function OnBoardingView() {
 
   const { isLoading } = useSeller();
 
-  if (!data || isLoading)
+  if (isLoading)
     return (
       <div className="w-full min-h-svh flex items-center  justify-center">
         <Loader />
       </div>
     );
 
+  if (!data) return;
   return <Component steps={data.onboardingStep} />;
 }
 
@@ -32,13 +33,17 @@ function Component({ steps }: { steps: number }) {
   };
   useEffect(
     function () {
-      setSteps(steps);
+      if (steps >= 1 && steps <= 4) {
+        setSteps(steps);
+      } else {
+        setSteps(4);
+      }
     },
     [steps]
   );
   return (
     <div className="flex px-4 gap-8 py-8  flex-col items-center">
-      <div className="flex">
+      <div className="flex items-center">
         <StepperProgress currentStep={currentSteps} totalSteps={4} />
       </div>
       <Card className="max-w-md border-2 w-full">

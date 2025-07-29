@@ -29,9 +29,11 @@ const FormSchema = z.object({
 
 interface PhoneNumberConfirmOTPProps {
   phoneNumber: string;
+  setPhoneNumber(number: string): void;
 }
 export function PhoneNumberConfirmOTP({
   phoneNumber,
+  setPhoneNumber,
 }: PhoneNumberConfirmOTPProps) {
   // see if we either
 
@@ -64,6 +66,9 @@ export function PhoneNumberConfirmOTP({
       confirmPhoneNumber.mutate(
         { otp: data.pin, phone_number: phoneNumber },
         {
+          onSuccess() {
+            setPhoneNumber('');
+          },
           onError(error) {
             form.setError('pin', {
               message: error.message,

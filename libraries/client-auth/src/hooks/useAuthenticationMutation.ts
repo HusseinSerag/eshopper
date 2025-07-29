@@ -26,7 +26,7 @@ export const useAuthenticatedMutation = <TData = unknown, TVariables = unknown>(
       return authContext.httpClient.request({
         url: config.url,
         method: config.method || 'post',
-        body: JSON.stringify(variables),
+        body: variables,
         signal: options?.meta?.signal as AbortSignal, // Support cancellation
         headers: {
           'Content-type': 'application/json',

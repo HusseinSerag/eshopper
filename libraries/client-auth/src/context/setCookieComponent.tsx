@@ -17,7 +17,7 @@ export function SetCookieComponent({ cookies, onComplete }: Props) {
         }
       })();
     },
-    [cookies]
+    [cookies, onComplete]
   );
   return null;
 }

@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { Session, Users, Account } from '@eshopper/database';
+import { Session, Users, Account, Seller, Shop } from '@eshopper/database';
 
 export interface IRequest<
   Params = any,
@@ -12,4 +12,7 @@ export interface IRequest<
   user?: Users;
   session?: Session;
   account?: Account;
+  seller?: Seller & {
+    shop: Shop | null;
+  };
 }

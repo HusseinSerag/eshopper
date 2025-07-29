@@ -40,10 +40,10 @@ interface DayChoiceProps {
   error?: { close: string; open: string; message: string };
 }
 function DayChoice({ day, onChange, value, error, ...props }: DayChoiceProps) {
-  const [activated, setActivated] = useState(() =>
-    day === 'Sunday' || day === 'Saturday' ? false : true
-  );
   const currentDayValue = value.find((item) => item.day === day);
+  const [activated, setActivated] = useState(
+    () => currentDayValue?.open && currentDayValue?.close
+  );
   const [openTime, setOpenTime] = useState(currentDayValue?.open || '');
   const [closeTime, setCloseTime] = useState(currentDayValue?.close || '');
 

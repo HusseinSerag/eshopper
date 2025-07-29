@@ -16,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <ClientProviders>
-      <html className="min-h-svh w-full" lang="en">
+      <html suppressHydrationWarning className="min-h-svh w-full" lang="en">
         <body className="min-h-svh w-full">
           {children}
 

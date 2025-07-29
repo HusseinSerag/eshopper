@@ -16,7 +16,8 @@ export const ProtectedServerComponent = createProtectedComponent<SellerUser>({
           user.emailOwnership.some((email) => !email.isVerified) ||
           !user.seller ||
           !user.seller.isPhoneVerified ||
-          !user.seller.stripeId
+          !user.seller.stripeId ||
+          !user.seller.isOnboarded
         );
       },
       redirectTo: '/onboarding',

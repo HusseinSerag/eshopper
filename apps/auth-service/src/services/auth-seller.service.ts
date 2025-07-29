@@ -1,6 +1,7 @@
 import { config } from '../main';
 import {
   MeSellerResponse,
+  OpeningHours,
   PhoneNumberVerificationInfo,
 } from '@eshopper/shared-types';
 import { dbProvider, redisProvider } from '../provider';
@@ -41,11 +42,8 @@ export async function getSellerMeService(id: string) {
         },
       },
       seller: {
-        select: {
-          id: true,
-          stripeId: true,
-          phone_number: true,
-          isPhoneVerified: true,
+        include: {
+          shop: {},
         },
       },
     },
@@ -67,15 +65,36 @@ export async function getSellerMeService(id: string) {
         type: acc.type as any, // Cast to avoid enum mismatch
         createdAt: acc.createdAt.toISOString(),
       })),
-      seller: userInformation!.seller
+      seller: userInformation?.seller
         ? {
-            id: userInformation!.seller.id,
-            stripeId: userInformation!.seller.stripeId
-              ? userInformation!.seller.stripeId
+            ...userInformation.seller,
+            phone_number: userInformation.seller.phone_number
+              ? userInformation.seller.phone_number
               : undefined,
-            isPhoneVerified: userInformation!.seller.isPhoneVerified,
-            phone_number: userInformation!.seller.phone_number
-              ? userInformation!.seller.phone_number
+            stripeId: userInformation.seller.stripeId
+              ? userInformation.seller.stripeId
+              : undefined,
+            createdAt: userInformation.seller.createdAt.toISOString(),
+            updatedAt: userInformation.seller.updatedAt.toISOString(),
+            shop: userInformation.seller.shop
+              ? {
+                  ...userInformation.seller.shop,
+                  createdAt:
+                    userInformation.seller.shop.createdAt.toISOString(),
+                  updatedAt:
+                    userInformation.seller.shop.updatedAt.toISOString(),
+                  bio: userInformation.seller.shop.bio
+                    ? userInformation.seller.shop.bio
+                    : undefined,
+                  coverBanner: userInformation.seller.shop.coverBanner
+                    ? userInformation.seller.shop.coverBanner
+                    : undefined,
+                  opening_hours: userInformation.seller.shop
+                    .opening_hours as OpeningHours[],
+                  otherCategory: userInformation.seller.shop.otherCategory
+                    ? userInformation.seller.shop.otherCategory
+                    : '',
+                }
               : undefined,
           }
         : undefined,

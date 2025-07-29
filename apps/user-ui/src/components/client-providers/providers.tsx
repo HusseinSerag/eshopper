@@ -5,7 +5,7 @@ import {
   QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query';
-
+import { ErrorBoundary } from 'react-error-boundary';
 import {
   AuthError,
   NetworkError,
@@ -14,6 +14,7 @@ import {
 } from '@eshopper/client-auth';
 import { AuthProviderWrapper } from './authProviderWrapper';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { AppUnavaliable } from '@eshopper/ui';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -52,9 +53,16 @@ export function getQueryClient() {
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProviderWrapper>{children}</AuthProviderWrapper>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary
+      onReset={() => {
+        window.location.reload();
+      }}
+      fallbackRender={AppUnavaliable}
+    >
+      <QueryClientProvider client={queryClient}>
+        <AuthProviderWrapper>{children}</AuthProviderWrapper>
+        <ReactQueryDevtools initialIsOpen={false} />
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

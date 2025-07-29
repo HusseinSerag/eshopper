@@ -9,7 +9,7 @@ export function validationMiddleware(schema: ZodSchema) {
       query: req.query,
       params: req.params,
     });
-
+    console.log(req.body, typeof req.body, req.body.country);
     if (result.success === false) {
       const error = result.error.errors
         .map((error) => error.message)

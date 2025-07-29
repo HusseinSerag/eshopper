@@ -14,17 +14,18 @@ export default async function VerificationPage() {
         onBlocked: true,
         onInverification: false,
       }}
-      Component={async ({ user, freshTokens }) => {
+      Component={async ({ user, freshTokens, queryClient }) => {
         user = user!;
         if (hasVerifiedEmail(user)) {
           redirect('/');
         }
 
-        const queryClient = await prefetchAuthenticatedQuery(
+        await prefetchAuthenticatedQuery(
           axiosClient,
           ['verification'],
           '/auth/verification-info',
-          freshTokens
+          freshTokens,
+          queryClient
         );
         return (
           <HydrationBoundary state={dehydrate(queryClient)}>

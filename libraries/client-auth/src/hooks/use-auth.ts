@@ -46,8 +46,10 @@ export function useAuth() {
     retry: false, // don't retry
   });
 
-  const isAuthenticated = !isLoading && !isError && user.success && !!user.user;
-  const isBlocked = !isLoading && !isError && !user.success && user.isBlocked;
+  const isAuthenticated =
+    !isLoading && !isError && user && user.success && !!user.user;
+  const isBlocked =
+    !isLoading && !isError && user && !user.success && user.isBlocked;
 
   return { user, isAuthenticated, isLoading, refetch, isBlocked };
 }

@@ -34,7 +34,19 @@ import type {
   Account as PrismaAccount,
   Role,
   Categories,
+  Sellers,
+  Shops,
 } from '@prisma/client';
 type Account = Omit<PrismaAccount, 'password'>;
 
-export type { Session, Users, Avatar, AccountType, Account, Role, Categories };
+export type {
+  Session,
+  Users,
+  Avatar,
+  AccountType,
+  Account,
+  Role,
+  Categories,
+  Sellers as Seller,
+  Shops as Shop,
+};

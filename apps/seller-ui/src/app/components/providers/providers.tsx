@@ -14,7 +14,9 @@ import {
 } from '@eshopper/client-auth';
 import { AuthProviderWrapper } from './authProviderWrapper';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { GeoProvider } from '@eshopper/ui';
+import { GeoProvider, ThemeProvider } from '@eshopper/ui';
+import { AppUnavaliable } from '@eshopper/ui';
+import { ErrorBoundary } from 'react-error-boundary';
 
 function makeQueryClient() {
   return new QueryClient({
@@ -52,12 +54,27 @@ export function getQueryClient() {
 }
 export function ClientProviders({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
+
   return (
-    <QueryClientProvider client={queryClient}>
-      <GeoProvider>
-        <AuthProviderWrapper>{children}</AuthProviderWrapper>
-      </GeoProvider>
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <ErrorBoundary
+      onReset={() => {
+        window.location.reload();
+      }}
+      fallbackRender={AppUnavaliable}
+    >
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <GeoProvider>
+            <AuthProviderWrapper>{children}</AuthProviderWrapper>
+          </GeoProvider>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }

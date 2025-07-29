@@ -10,7 +10,13 @@
   "exclude": ["eslint.config.js", "eslint.config.cjs", "eslint.config.mjs"],
   "references": [
     {
+      "path": "../../libraries/logger/tsconfig.lib.json"
+    },
+    {
       "path": "../../libraries/middleware/tsconfig.lib.json"
+    },
+    {
+      "path": "../../libraries/utils/tsconfig.lib.json"
     },
     {
       "path": "../../libraries/auth/tsconfig.lib.json"

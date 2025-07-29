@@ -492,6 +492,12 @@ export const GoogleOAuthCallbackController = async (
         },
       },
     });
+
+    const countOfAccounts = await dbProvider.getPrisma().account.findMany({
+      where: {
+        userId,
+      },
+    });
     if (account) {
       await dbProvider.getPrisma().account.update({
         where: { id: account.id },
@@ -519,6 +525,7 @@ export const GoogleOAuthCallbackController = async (
           type: 'GOOGLE',
           email: googleUser.email,
           providerId: googleUser.id,
+          isPrimary: countOfAccounts.length === 0,
           accessToken: tokens.access_token,
           refreshToken: tokens.refresh_token || null,
           tokenExpires: tokens.expires_in

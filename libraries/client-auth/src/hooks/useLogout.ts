@@ -4,10 +4,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useAuthenticatedMutation } from './useAuthenticationMutation';
 import { useRouter } from 'next/navigation';
 
-export const useLogout = (logoutAll = false) => {
+export const useLogout = ({ isSeller }: { isSeller: boolean }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const url = logoutAll ? '/auth/logout-all' : '/auth/logout';
+  const url = isSeller ? '/auth/seller/logout' : '/auth/logout';
 
   return useAuthenticatedMutation(
     {
@@ -20,11 +20,6 @@ export const useLogout = (logoutAll = false) => {
         queryClient.removeQueries({
           predicate: (query) => query.queryKey[0] === 'protected',
         });
-        queryClient.removeQueries({
-          queryKey: ['auth', 'user'],
-        });
-
-        // await queryClient.invalidateQueries({ queryKey: ['auth', 'user'] });
       },
     }
   );

@@ -4,7 +4,13 @@
   "include": [],
   "references": [
     {
+      "path": "../../libraries/logger"
+    },
+    {
       "path": "../../libraries/middleware"
+    },
+    {
+      "path": "../../libraries/utils"
     },
     {
       "path": "../../libraries/auth"

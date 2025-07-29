@@ -1,6 +1,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 
 import { useAuthContext } from '../context/useAuthContext';
+import { useOffline } from './useOffline';
 
 export const useCustomQuery = <TData = unknown>(
   queryKey: (string | number)[],
@@ -8,7 +9,7 @@ export const useCustomQuery = <TData = unknown>(
   options?: Omit<UseQueryOptions<TData>, 'queryKey' | 'queryFn'>
 ) => {
   const authContext = useAuthContext();
-
+  const { isOffline } = useOffline();
   return useQuery({
     queryKey: [...queryKey],
     queryFn: async (): Promise<TData> => {
@@ -17,7 +18,7 @@ export const useCustomQuery = <TData = unknown>(
         method: 'get',
       })) as TData;
     },
-    enabled: options?.enabled ?? true,
+    enabled: (!isOffline && options?.enabled) ?? true,
     ...options,
   });
 };

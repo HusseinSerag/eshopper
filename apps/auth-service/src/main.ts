@@ -12,6 +12,7 @@ import { setupApp } from '@eshopper/global-configuration';
 import { createRoutes } from './routes/auth.routes';
 import { SessionCleanupJob } from './jobs/deleteSessionJobs';
 import { UnverifiedUserCleanupJob } from './jobs/deleteUserJob';
+import cookieParser from 'cookie-parser';
 
 async function startApp() {
   setupErrorMonitoring(() => {
@@ -25,7 +26,7 @@ async function startApp() {
   const port = config.get('PORT');
 
   const app = express();
-
+  app.use(cookieParser());
   setupApp(app);
 
   app.use(

@@ -5,7 +5,9 @@ import { Button } from '@eshopper/ui';
 
 export function Test() {
   const { isAuthenticated, isLoading, user } = useAuth();
-  const { mutate } = useLogout();
+  const { mutate } = useLogout({
+    isSeller: false,
+  });
   if (isLoading) {
     return <div>loading...</div>;
   } else {

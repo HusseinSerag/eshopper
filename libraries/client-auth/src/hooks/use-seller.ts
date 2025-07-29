@@ -1,3 +1,4 @@
+'use client';
 import { useQuery } from '@tanstack/react-query';
 
 import type { MeSellerResponse, SellerUser } from '@eshopper/shared-types';
@@ -23,6 +24,7 @@ export function useSeller() {
     queryKey: ['auth', 'user'],
     queryFn: async () => {
       try {
+        console.log('called');
         const response = (await authContext.httpClient.request({
           url: '/auth/seller/me',
           method: 'get',
@@ -46,8 +48,10 @@ export function useSeller() {
     retry: false, // don't retry
   });
 
-  const isAuthenticated = !isLoading && !isError && user.success && !!user.user;
-  const isBlocked = !isLoading && !isError && !user.success && user.isBlocked;
+  const isAuthenticated =
+    !isLoading && !isError && user && user.success && !!user.user;
+  const isBlocked =
+    !isLoading && !isError && user && !user.success && user.isBlocked;
 
   return { user, isAuthenticated, isLoading, refetch, isBlocked };
 }

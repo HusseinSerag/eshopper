@@ -152,6 +152,7 @@ model Sellers {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
   phone_number String? @unique
   isPhoneVerified Boolean @default(false)
+  isOnboarded Boolean @default(false)
   country String
   stripeId String?
   shop Shops?

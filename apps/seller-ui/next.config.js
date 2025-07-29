@@ -9,6 +9,7 @@ const { composePlugins, withNx } = require('@nx/next');
 const nextConfig = {
   nx: {},
 
+  reactStrictMode: false,
   images: {
     remotePatterns: [
       {
@@ -19,6 +20,13 @@ const nextConfig = {
       },
     ],
   },
+  redirects: async () => [
+    {
+      source: '/',
+      destination: '/dashboard',
+      permanent: true,
+    },
+  ],
 };
 
 const plugins = [

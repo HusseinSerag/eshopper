@@ -1,15 +1,15 @@
+import { PageSkeleton } from '@/modules/onboarding/ui/components/page-skeleton';
 import { OnBoardingView } from '@/modules/onboarding/ui/views/onboarding-view';
 import { axiosClient } from '@/utils/axios';
+
 import { ProtectedServerComponent } from '@/utils/protectedComponent';
 import {
   prefetchAuthenticatedQuery,
   prefetchQuery,
 } from '@eshopper/client-auth/server';
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from '@tanstack/react-query';
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 export default function OnboardingPage() {
   return (
@@ -19,12 +19,18 @@ export default function OnboardingPage() {
         onBlocked: true,
         onInverification: false,
       }}
-      Component={async ({ freshTokens, user }) => {
-        const queryClient = new QueryClient();
-        queryClient.setQueryData(['auth', 'user'], {
-          user,
-          success: true,
-        });
+      Component={async ({ freshTokens, user, queryClient }) => {
+        const finishedOnboarding =
+          user &&
+          user.emailOwnership.every((email) => email.isVerified) &&
+          user.seller &&
+          user.seller.isPhoneVerified &&
+          user.seller.stripeId &&
+          user.seller.isOnboarded;
+        if (finishedOnboarding) {
+          redirect('/');
+          return;
+        }
 
         await prefetchAuthenticatedQuery(
           axiosClient,
@@ -61,9 +67,12 @@ export default function OnboardingPage() {
           '/shop/categories',
           queryClient
         );
+
         return (
           <HydrationBoundary state={dehydrate(queryClient)}>
-            <OnBoardingView />
+            <Suspense fallback={<PageSkeleton />}>
+              <OnBoardingView />
+            </Suspense>
           </HydrationBoundary>
         );
       }}

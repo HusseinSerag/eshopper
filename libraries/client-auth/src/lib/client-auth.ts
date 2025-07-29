@@ -88,9 +88,13 @@ export class AuthenticateHttpClient {
       signal: config.signal,
     };
     try {
-      const response = await this.axiosInstance
-        .getInstance()
-        .request(axiosConfiguration);
+      const response = await this.axiosInstance.getInstance().request({
+        url: axiosConfiguration.url,
+        data: axiosConfiguration.data,
+        method: axiosConfiguration.method,
+        signal: axiosConfiguration.signal,
+        withCredentials: true,
+      });
 
       const contentType = response.headers['content-type'];
       if (contentType && contentType.includes('application/json')) {

@@ -7,6 +7,7 @@ import { AxiosClient } from '@eshopper/utils/client';
 import { ClientWrapper } from './client-wrapper';
 import { BaseUser, hasVerifiedEmail } from '@eshopper/shared-types';
 import { RedirectionComponent } from './RedirectionComponent';
+import { QueryClient } from '@tanstack/react-query';
 
 type Redirection = {
   onInverification: boolean;
@@ -32,7 +33,11 @@ export interface FactoryConfig<T extends BaseUser> {
 }
 
 export interface ProtectedServerComponentHOCProps<T extends BaseUser> {
-  Component: React.ComponentType<{ user?: T; [key: string]: any }>;
+  Component: React.ComponentType<{
+    user?: T;
+    queryClient: QueryClient;
+    [key: string]: any;
+  }>;
   handleUnauthenticated?: () => void;
   redirection?: Redirection;
   currentUrl?: string;
@@ -92,6 +97,7 @@ export function createProtectedComponent<T extends BaseUser>(
       handleUnauthenticated();
       return null;
     }
+    const queryClient = new QueryClient();
     if (data.success === true && !data.user && data.isBlocked) {
       if (redirection.onBlocked) {
         // go to blocked page
@@ -116,13 +122,18 @@ export function createProtectedComponent<T extends BaseUser>(
           );
           return (
             <ClientWrapper cookies={cookies}>
-              <Component {...rest} />
+              <Component queryClient={queryClient} {...rest} />
             </ClientWrapper>
           );
         }
-        return <Component {...rest} />;
+        return <Component queryClient={queryClient} {...rest} />;
       }
     }
+
+    queryClient.setQueryData(['auth', 'user'], {
+      user: data.user,
+      success: true,
+    });
     if (data.success && data.refreshed === true) {
       const { cookies } = createCookies(data.accessToken, data.refreshToken);
       if (redirection.onInverification && !hasVerifiedEmail(data.user)) {
@@ -153,6 +164,7 @@ export function createProtectedComponent<T extends BaseUser>(
               accessToken: data.accessToken,
               refreshToken: data.refreshToken,
             }}
+            queryClient={queryClient}
             user={data.user as T}
             {...rest}
           />
@@ -174,7 +186,10 @@ export function createProtectedComponent<T extends BaseUser>(
         }
       }
     }
-    if (data.user) return <Component user={data.user as T} {...rest} />;
+    if (data.user)
+      return (
+        <Component queryClient={queryClient} user={data.user as T} {...rest} />
+      );
     return null;
   };
 }

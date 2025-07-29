@@ -29,6 +29,29 @@ export interface SellerUser extends BaseUser {
     stripeId?: string;
     phone_number?: string;
     isPhoneVerified: boolean;
+    isOnboarded: boolean;
+    country: string;
+    createdAt: string;
+    updatedAt: string;
+    shop?: {
+      id: string;
+      name: string;
+      bio?: string;
+
+      coverBanner?: string;
+      address: string;
+      opening_hours: OpeningHours[];
+      website: string;
+      socialLinks: any;
+      ratings: number;
+
+      categoryId: string;
+
+      otherCategory: string;
+
+      createdAt: string;
+      updatedAt: string;
+    };
   };
 }
 

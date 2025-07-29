@@ -20,13 +20,16 @@ export class ConfigProvider<T extends z.ZodSchema> {
       }
       this._config = Object.freeze(parsed.data);
     } catch (e: unknown) {
+      console.log(e);
       if (e instanceof ZodError) {
+        console.log(e.errors);
         logger.info('Error adding enviroment variables', {
           error: e.errors.forEach((error) => error.message),
           errorStack: e.stack,
           msg: e.flatten(),
         });
       }
+      logger.info('Error loading enviroment variables');
       process.exit(1);
     }
   }

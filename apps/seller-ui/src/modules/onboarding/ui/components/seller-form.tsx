@@ -105,7 +105,7 @@ export function SellerForm({ defaultValues, onNext, ...props }: Props) {
     } = values;
 
     const submitValues: CreateShop = {
-      ...values,
+      country: values.country,
       shop: {
         ...rest,
         categoryId,
@@ -141,9 +141,16 @@ export function SellerForm({ defaultValues, onNext, ...props }: Props) {
         <h2 className="text-xl font-semibold mb-4">
           Step 2: {isEditing ? 'Edit' : 'Create'} your Shop
         </h2>
-        <Button type="button" variant={'default'} onClick={onNext} size={'sm'}>
-          next
-        </Button>
+        {defaultValues && (
+          <Button
+            type="button"
+            variant={'default'}
+            onClick={onNext}
+            size={'sm'}
+          >
+            next
+          </Button>
+        )}
       </div>
       <ScrollArea className="h-96">
         <Form {...form}>

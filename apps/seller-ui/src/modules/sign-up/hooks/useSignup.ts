@@ -21,7 +21,7 @@ export function useSignup() {
       try {
         await client.request({
           url: '/auth/register',
-          body: JSON.stringify({ ...data, role: 'seller' }),
+          body: { ...data, role: 'seller' },
           method: 'post',
           headers: {
             'Content-type': 'application/json',

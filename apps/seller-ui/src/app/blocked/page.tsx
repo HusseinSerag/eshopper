@@ -11,12 +11,13 @@ export default async function BlockedPage() {
         onBlocked: false,
         onInverification: true,
       }}
-      Component={async ({ user, freshTokens }) => {
-        const queryClient = await prefetchAuthenticatedQuery(
+      Component={async ({ user, freshTokens, queryClient }) => {
+        await prefetchAuthenticatedQuery(
           axiosClient,
           ['blocked-info'],
           '/auth/seller/blocked-info',
-          freshTokens
+          freshTokens,
+          queryClient
         );
         return (
           <HydrationBoundary state={dehydrate(queryClient)}>

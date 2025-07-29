@@ -6,44 +6,45 @@ import { useState, useEffect } from 'react';
 import { useRequestPhoneNumber } from '../../hooks/useRequestPhoneNumber';
 import { PhoneNumberConfirmOTP } from './phone-number-confirm-otp';
 import { Button } from '@eshopper/ui';
-import { useQueryClient } from '@tanstack/react-query';
 
 interface Props {
   goToNextOnboardingStep: () => void;
 }
 export function PhoneNumberForm({ goToNextOnboardingStep }: Props) {
-  const queryClient = useQueryClient();
   const { data } = useAuthenticatedQuery<{ data: PhoneNumberVerificationInfo }>(
     ['phone-number-verification-info'],
-    '/auth/seller/phone-verification-info'
+    '/auth/seller/phone-verification-info',
+    {
+      staleTime: 0,
+    }
   );
 
   const { user } = useSeller();
   // Use localStorage for phoneNumber
   const [phoneNumber, setPhoneNumberState] = useState('');
+  const [hasInitialized, setHasInitialized] = useState(false);
+
   useEffect(() => {
-    const stored = window.localStorage.getItem('phoneNumber');
-    if (stored) {
-      setPhoneNumberState(stored);
-    } else if (data?.data.number) {
-      setPhoneNumberState(data.data.number);
-      window.localStorage.setItem('phoneNumber', data.data.number);
+    if (!hasInitialized) {
+      const stored = window.localStorage.getItem('phoneNumber');
+      if (stored) {
+        setPhoneNumberState(stored);
+      } else if (data?.data.number) {
+        setPhoneNumberState(data.data.number);
+        window.localStorage.setItem('phoneNumber', data.data.number);
+      }
+      setHasInitialized(true);
     }
-  }, [data?.data.number]);
+  }, [data?.data.number, hasInitialized]);
+
   const [step, setStep] = useState(1);
 
-  useEffect(
-    function () {
-      if (phoneNumber) {
-        window.localStorage.setItem('phoneNumber', phoneNumber);
-      } else {
-        window.localStorage.removeItem('phoneNumber');
-      }
-    },
-    [phoneNumber]
-  );
+  console.log(phoneNumber);
+
   const setPhoneNumber = (num: string) => {
     setPhoneNumberState(num);
+    // Update localStorage whenever we set a new phone number
+    window.localStorage.setItem('phoneNumber', num);
   };
 
   const { mutate, isPending } = useRequestPhoneNumber();
@@ -116,7 +117,10 @@ export function PhoneNumberForm({ goToNextOnboardingStep }: Props) {
             Edit Number
           </Button>
         </div>
-        <PhoneNumberConfirmOTP phoneNumber={phoneNumber} />
+        <PhoneNumberConfirmOTP
+          setPhoneNumber={setPhoneNumber}
+          phoneNumber={phoneNumber}
+        />
       </div>
     );
   return null;

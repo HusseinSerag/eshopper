@@ -7,4 +7,5 @@ axiosClient.getInstance().interceptors.request.use((config) => {
   config.headers['X-Origin-Site'] = 'seller';
   return config;
 });
+
 export { axiosClient };

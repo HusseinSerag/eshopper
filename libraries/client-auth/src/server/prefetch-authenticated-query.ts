@@ -21,20 +21,31 @@ export async function prefetchAuthenticatedQuery(
   } else {
     cookieHeader = (await cookies()).toString();
   }
-  await queryClient.prefetchQuery({
+
+  const headerObj: Record<string, string> = {};
+  headersList.forEach((value, key) => {
+    headerObj[key] = value;
+  });
+
+  void queryClient.prefetchQuery({
     queryKey: ['protected', ...queryKey],
     queryFn: async () => {
+      const requestId = crypto.randomUUID();
+      console.log(`X-Request-Id:${requestId}`);
       return authClient.request({
         url,
         method: 'get',
         headers: {
           'Content-type': 'application/json',
-          ...Object.fromEntries(headersList.entries()),
+          ...headerObj,
           ...passedHeaders,
           cookie: cookieHeader,
+          'X-Request-Id': requestId,
         },
       });
     },
+    staleTime: Infinity,
+    gcTime: Infinity,
     ...options,
   });
   return queryClient;

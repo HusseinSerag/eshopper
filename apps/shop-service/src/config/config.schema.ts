@@ -15,4 +15,5 @@ export const ConfigSchema = z.object({
   SELLER_ORIGIN: z.string(),
   ACCESS_TOKEN_SECRET: z.string(),
   REFRESH_TOKEN_SECRET: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
 });

@@ -31,6 +31,7 @@ app.use(
       'fallback_access_token',
       'fallback_refresh_token',
       'X-Origin-Site',
+      'X-Request-Id',
     ],
   })
 );

@@ -52,6 +52,7 @@ export function EnterPhoneNumber({
   const cooldown = data.data.userCooldown;
   function onSubmit(values: z.infer<typeof EnterPhoneNumberSchema>) {
     if (isLoading || cooldown > 0) return;
+
     mutate(values);
   }
 
@@ -78,7 +79,7 @@ export function EnterPhoneNumber({
           )}
         />
         <div>
-          {cooldown > 0 ? (
+          {cooldown > 1 ? (
             <Cooldown cooldown={cooldown} />
           ) : (
             <Button disabled={isLoading}>Send OTP</Button>
@@ -93,7 +94,7 @@ function Cooldown({ cooldown }: { cooldown: number }) {
   const { hours, minutes, seconds } = useCountdown(cooldown);
   return (
     <div className="font-semibold text-sm">
-      {hours}:{minutes}:{seconds}
+      Please wait {hours}:{minutes}:{seconds} before sending another SMS
     </div>
   );
 }

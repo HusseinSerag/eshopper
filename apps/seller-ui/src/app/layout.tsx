@@ -1,6 +1,9 @@
 import { Toaster } from 'sonner';
 import { ClientProviders } from './components/providers/providers';
 import './global.css';
+import 'swiper/css';
+import 'swiper/css/bundle';
+
 import { OfflineAlert } from '@eshopper/ui';
 
 export const metadata = {
@@ -14,15 +17,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClientProviders>
-      <html className="min-h-svh w-full" lang="en">
-        <body className="min-h-svh w-full">
+    <html suppressHydrationWarning className="min-h-svh w-full" lang="en">
+      <body className="min-h-svh w-full relative">
+        <ClientProviders>
           {children}
-
           <Toaster />
           <OfflineAlert />
-        </body>
-      </html>
-    </ClientProviders>
+        </ClientProviders>
+      </body>
+    </html>
   );
 }
